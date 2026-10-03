@@ -122,6 +122,11 @@ Each boss fight is divided into two distinct sections — the fight and the esca
 
 Climbing and wall-shimmying (Fez-inspired), crouch-to-crawl, hold-crouch-to-sit, charge jump (staff required), air dash, and eventually teleport-to-thrown-staff. Between-region routes emphasize this system hardest.
 
+**Prototyped (test room):**
+- **Dash.** A horizontal dash of about 3 tiles with gravity suspended, in the Hollow Knight style. The player gets one air dash per jump, refilled on the ground or a wall.
+- **Wall slide and wall jump.** Holding toward a wall slows the fall, and jumping kicks off the wall (Celeste/Hollow Knight). Wall jumping wasn't in the original list. It's in as a feel test, and whether it stays as a base move, becomes an upgrade, or gets folded into Fez-style climbing is still open.
+- **Ability gating.** Both are behind ability flags on the player, so either can become a staff upgrade.
+
 ### Music & Secrets
 
 Certain areas play an audible tune. Copying it on the flute reveals a secret — never explained in text. Clues found on one screen frequently answer riddles on another. This is the load-bearing mechanic that the cymatics system (Section 8) builds directly on top of.

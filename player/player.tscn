@@ -6,6 +6,9 @@
 [ext_resource type="Texture2D" path="res://assets/Walk/PlayerWalk 48x48.png" id="4_walk"]
 [ext_resource type="Texture2D" path="res://assets/Jump/player new jump 48x48.png" id="5_jump"]
 [ext_resource type="Texture2D" path="res://assets/Land/player land 48x48.png" id="6_land"]
+[ext_resource type="Texture2D" path="res://assets/Dash/dash.png" id="7_dash"]
+[ext_resource type="Texture2D" path="res://assets/Wall Land/player wall land 48x48.png" id="8_wall_land"]
+[ext_resource type="Texture2D" path="res://assets/Wall Slide/player wall slide 48x48.png" id="9_wall_slide"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle_0"]
 atlas = ExtResource("2_idle")
@@ -171,6 +174,62 @@ region = Rect2(336, 0, 48, 48)
 atlas = ExtResource("6_land")
 region = Rect2(384, 0, 48, 48)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_dash_0"]
+atlas = ExtResource("7_dash")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dash_1"]
+atlas = ExtResource("7_dash")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dash_2"]
+atlas = ExtResource("7_dash")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dash_3"]
+atlas = ExtResource("7_dash")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dash_4"]
+atlas = ExtResource("7_dash")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wall_land_0"]
+atlas = ExtResource("8_wall_land")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wall_land_1"]
+atlas = ExtResource("8_wall_land")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wall_land_2"]
+atlas = ExtResource("8_wall_land")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wall_land_3"]
+atlas = ExtResource("8_wall_land")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wall_land_4"]
+atlas = ExtResource("8_wall_land")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wall_land_5"]
+atlas = ExtResource("8_wall_land")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wall_slide_0"]
+atlas = ExtResource("9_wall_slide")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wall_slide_1"]
+atlas = ExtResource("9_wall_slide")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wall_slide_2"]
+atlas = ExtResource("9_wall_slide")
+region = Rect2(96, 0, 48, 48)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_player"]
 animations = [{
 "frames": [{
@@ -325,6 +384,63 @@ animations = [{
 "loop": false,
 "name": &"land",
 "speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dash_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dash_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dash_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dash_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dash_4")
+}],
+"loop": false,
+"name": &"dash",
+"speed": 30.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wall_land_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wall_land_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wall_land_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wall_land_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wall_land_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wall_land_5")
+}],
+"loop": false,
+"name": &"wall_land",
+"speed": 15.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wall_slide_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wall_slide_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wall_slide_2")
+}],
+"loop": false,
+"name": &"wall_slide",
+"speed": 10.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]

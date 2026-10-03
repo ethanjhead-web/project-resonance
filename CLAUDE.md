@@ -42,18 +42,25 @@ ZL crouch · ZR dash · D-pad up for map, down for inventory. Keyboard bindings 
     still.
   - `respawn()` returns the player to the spawn point.
   - The current tuning gives a jump of about 75px (4.5 tiles).
+  - **Dash:** 300px/s for 0.15s (about 45px) with gravity off. The player gets one air dash per jump. A jump
+    cancels the dash, and dashing off a wall goes away from it.
+  - **Wall slide and wall jump:** the slide caps the fall at 60px/s while holding toward a wall. The jump
+    pushes away from the wall, then ignores input for 0.14s. Walls are detected with `test_move`, so a jump
+    still counts briefly after drifting off a wall (wall coyote time).
+  - **Ability flags:** `can_dash` and `can_wall_jump` are the hooks for staff upgrades.
 - `levels/test_room.tscn` (the main scene) is a movement sandbox.
   - `test_room.gd` sets the camera limits and respawns the player after a fall into the pit.
-  - The room contains a floor step, floating blocks, a pillar, a pit and a raised ledge.
+  - The room contains a floor step, floating blocks, a pillar, a pit, a raised ledge and a wall-jump
+    shaft between a tall column and the right wall.
 - `levels/cave_tileset.tres` is the TileSet. Solid tiles get full 16×16 collision.
 - `levels/cave_tile_painter.gd` (`@tool` TileMapLayer) autotiles an ASCII `layout` (`#` solid, `.` air).
   Press "Rebuild From Layout" in the Inspector to regenerate it. Layout rules:
   - air gaps of at least 2 tiles
   - free-floating blocks exactly 2×2
   - walkable tops on even rows
-- **Input actions:** `move_left`/`move_right` and `jump`.
-  - Keyboard: arrows or A/D to move, Space to jump.
-  - Gamepad: d-pad or left stick to move, and joypad button 0 to jump. Button 0 is the bottom face
+- **Input actions:** `move_left`/`move_right`, `jump` and `dash`.
+  - Keyboard: arrows or A/D to move, Space to jump, Shift to dash.
+  - Gamepad: d-pad or left stick to move, joypad button 0 to jump, ZR (trigger axis 5) to dash. Button 0 is the bottom face
     button, which is B on a Switch layout, matching the GDD.
 
 ## Conventions
