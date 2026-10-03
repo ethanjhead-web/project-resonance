@@ -125,7 +125,8 @@ Climbing and wall-shimmying (Fez-inspired), crouch-to-crawl, hold-crouch-to-sit,
 **Prototyped (test room):**
 - **Dash.** A horizontal dash of about 3 tiles with gravity suspended, in the Hollow Knight style. The player gets one air dash per jump, refilled on the ground or a wall.
 - **Wall slide and wall jump.** Holding toward a wall slows the fall, and jumping kicks off the wall (Celeste/Hollow Knight). Wall jumping wasn't in the original list. It's in as a feel test, and whether it stays as a base move, becomes an upgrade, or gets folded into Fez-style climbing is still open.
-- **Ability gating.** Both are behind ability flags on the player, so either can become a staff upgrade.
+- **Ledge grab and climb.** An automatic catch when falling at a ledge, followed by a pull-up. A jump from the hang pops straight up, and pressing away or down drops. This is the "climb" from the tutorial list in its simplest form, and Fez-style wall shimmying can build on the same hang state.
+- **Ability gating.** All three are behind ability flags on the player, so any of them can become a staff upgrade.
 
 ### Music & Secrets
 

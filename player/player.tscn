@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://assets/Dash/dash.png" id="7_dash"]
 [ext_resource type="Texture2D" path="res://assets/Wall Land/player wall land 48x48.png" id="8_wall_land"]
 [ext_resource type="Texture2D" path="res://assets/Wall Slide/player wall slide 48x48.png" id="9_wall_slide"]
+[ext_resource type="Texture2D" path="res://assets/Ledge Grab-Climb/player ledge climb 48x48.png" id="10_ledge"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle_0"]
 atlas = ExtResource("2_idle")
@@ -230,6 +231,26 @@ region = Rect2(48, 0, 48, 48)
 atlas = ExtResource("9_wall_slide")
 region = Rect2(96, 0, 48, 48)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_ledge_hang_0"]
+atlas = ExtResource("10_ledge")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ledge_climb_1"]
+atlas = ExtResource("10_ledge")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ledge_climb_2"]
+atlas = ExtResource("10_ledge")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ledge_climb_3"]
+atlas = ExtResource("10_ledge")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ledge_climb_4"]
+atlas = ExtResource("10_ledge")
+region = Rect2(192, 0, 48, 48)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_player"]
 animations = [{
 "frames": [{
@@ -441,6 +462,31 @@ animations = [{
 "loop": false,
 "name": &"wall_slide",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ledge_hang_0")
+}],
+"loop": false,
+"name": &"ledge_hang",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ledge_climb_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ledge_climb_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ledge_climb_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ledge_climb_4")
+}],
+"loop": false,
+"name": &"ledge_climb",
+"speed": 12.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]

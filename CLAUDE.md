@@ -47,7 +47,12 @@ ZL crouch · ZR dash · D-pad up for map, down for inventory. Keyboard bindings 
   - **Wall slide and wall jump:** the slide caps the fall at 60px/s while holding toward a wall. The jump
     pushes away from the wall, then ignores input for 0.14s. Walls are detected with `test_move`, so a jump
     still counts briefly after drifting off a wall (wall coyote time).
-  - **Ability flags:** `can_dash` and `can_wall_jump` are the hooks for staff upgrades.
+  - **Ledge grab:** catches automatically when the player is falling, facing a wall, and the hands come
+    within 8px of a ledge top that has standing room. It uses physics ray and shape probes, not tile reads.
+    - From the hang: toward the ledge or Up climbs, jump does a ledge jump, and away or Down drops.
+    - The climb art is drawn in place, so `CLIMB_KEYS` moves the body pose by pose. Re-measure it if the
+      climb sheet changes.
+  - **Ability flags:** `can_dash`, `can_wall_jump` and `can_ledge_grab` are the hooks for staff upgrades.
 - `levels/test_room.tscn` (the main scene) is a movement sandbox.
   - `test_room.gd` sets the camera limits and respawns the player after a fall into the pit.
   - The room contains a floor step, floating blocks, a pillar, a pit, a raised ledge and a wall-jump
@@ -58,9 +63,11 @@ ZL crouch · ZR dash · D-pad up for map, down for inventory. Keyboard bindings 
   - air gaps of at least 2 tiles
   - free-floating blocks exactly 2×2
   - walkable tops on even rows
-- **Input actions:** `move_left`/`move_right`, `jump` and `dash`.
-  - Keyboard: arrows or A/D to move, Space to jump, Shift to dash.
-  - Gamepad: d-pad or left stick to move, joypad button 0 to jump, ZR (trigger axis 5) to dash. Button 0 is the bottom face
+- **Input actions:** `move_left`/`move_right`, `move_up`, `crouch`, `jump` and `dash`.
+  - Keyboard: arrows or WASD to move (Up/W climbs, Down/S crouches), Space to jump, Shift to dash.
+  - Gamepad: d-pad or left stick to move, joypad button 0 to jump, ZR (trigger axis 5) to dash. Stick up/down
+    maps to `move_up`/`crouch`, and ZL (trigger axis 4) also crouches. The d-pad's up/down are kept free for
+    the map and inventory. Button 0 is the bottom face
     button, which is B on a Switch layout, matching the GDD.
 
 ## Conventions
