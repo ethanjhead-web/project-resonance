@@ -1,0 +1,9 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# macOS
+.DS_Store
+
+# Editor settings (machine-specific paths, e.g. Godot executable location)
+.vscode/
