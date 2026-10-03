@@ -4,26 +4,41 @@ extends CharacterBody2D
 # Every value below shows up in the Inspector when this script is
 # attached, so you can tune the feel by dragging numbers, no code
 # changes needed.
+#
+# Units are pixels at the game's 480x270 base resolution. The character
+# is ~30px tall and tiles are 16px, so a jump of ~72px clears about
+# four and a half tiles.
 
 # Horizontal movement
-@export var max_speed: float = 220.0
-@export var acceleration: float = 1800.0
-@export var friction: float = 1400.0
-@export var air_acceleration: float = 900.0
+@export var max_speed: float = 120.0
+@export var acceleration: float = 1000.0
+@export var friction: float = 900.0
+@export var air_acceleration: float = 650.0
 
 # Vertical movement
-@export var jump_velocity: float = -420.0
-@export var gravity: float = 1400.0
+@export var jump_velocity: float = -360.0
+@export var gravity: float = 900.0
 @export var fall_gravity_multiplier: float = 1.6
-@export var max_fall_speed: float = 700.0
+@export var max_fall_speed: float = 420.0
 @export var jump_cut_multiplier: float = 0.45
 
 # Forgiveness windows (in seconds)
 @export var coyote_time: float = 0.12
 @export var jump_buffer_time: float = 0.12
 
+# Below this horizontal speed the run animation hands back to idle, so
+# the last few pixels of deceleration don't play a stuttery run cycle.
+@export var run_anim_threshold: float = 10.0
+
 var coyote_timer: float = 0.0
 var jump_buffer_timer: float = 0.0
+var spawn_position: Vector2
+
+@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
+
+
+func _ready() -> void:
+	spawn_position = global_position
 
 
 func _physics_process(delta: float) -> void:
@@ -72,4 +87,44 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_released("jump") and velocity.y < 0.0:
 		velocity.y *= jump_cut_multiplier
 
+	# Floor state has to be read before move_and_slide() updates it,
+	# otherwise there's no way to tell that we only just touched down.
+	var was_on_floor := is_on_floor()
 	move_and_slide()
+	_update_animation(direction, was_on_floor)
+
+
+func _update_animation(direction: float, was_on_floor: bool) -> void:
+	# Only turn on input, not velocity, so skidding to a stop after
+	# reversing doesn't flicker the facing back and forth.
+	if direction != 0.0:
+		sprite.flip_h = direction < 0.0
+
+	if not is_on_floor():
+		_play("jump" if velocity.y < 0.0 else "fall")
+		return
+
+	var moving := absf(velocity.x) > run_anim_threshold
+
+	# Landing recovery only plays when standing still. Any input cancels
+	# it, because locking the player into an animation on touchdown
+	# makes movement feel sluggish.
+	if not was_on_floor and not moving:
+		_play("land")
+		return
+	if sprite.animation == "land" and sprite.is_playing() and not moving:
+		return
+
+	_play("run" if moving else "idle")
+
+
+# play() restarts a non-looping animation if called again with the same
+# name, which would freeze jump/fall on their first frame. Guard it.
+func _play(anim: StringName) -> void:
+	if sprite.animation != anim:
+		sprite.play(anim)
+
+
+func respawn() -> void:
+	global_position = spawn_position
+	velocity = Vector2.ZERO

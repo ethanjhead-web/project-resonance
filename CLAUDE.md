@@ -25,10 +25,36 @@ A interact · B jump · X throw/recall staff · Y attack · hold RB for instrume
 ZL crouch · ZR dash · D-pad up for map, down for inventory. Keyboard bindings go through the Input Map.
 
 ## Current state of the code
-- `node_2d.tscn`: test scene (main scene) with a placeholder player and a floor.
-- `player_controller.gd`: CharacterBody2D movement. Accel/friction, asymmetric gravity, coyote time,
-  jump buffering, variable jump height. All values tuned via `@export`.
-- Input actions defined so far: `move_left`, `move_right`, `jump`.
+- **Display:** 480×270 base resolution, integer-scaled (window 1440×810), nearest filtering. All gameplay
+  units are pixels at that base resolution. Tiles are 16px and the character is about 30px tall.
+- `assets/`: a purchased placeholder sprite pack. It has one folder per animation (PNG strips plus
+  `.aseprite` sources) and `Tilemap (Super Basic)/Basic Tilemap.png`.
+- `player/player.tscn`: Player (CharacterBody2D) with these children:
+  - AnimatedSprite2D: idle, walk, run, jump, fall, land
+  - a 12×28 collision box
+  - Camera2D with smoothing
+
+  The origin is at the feet.
+- `player/player_controller.gd`: movement and animation.
+  - Movement: accel/friction, asymmetric gravity, coyote time, jump buffering, variable jump height. Every
+    value is an `@export`.
+  - Animation: the sprite flips on input. The `land` animation plays only when touching down while standing
+    still.
+  - `respawn()` returns the player to the spawn point.
+  - The current tuning gives a jump of about 75px (4.5 tiles).
+- `levels/test_room.tscn` (the main scene) is a movement sandbox.
+  - `test_room.gd` sets the camera limits and respawns the player after a fall into the pit.
+  - The room contains a floor step, floating blocks, a pillar, a pit and a raised ledge.
+- `levels/cave_tileset.tres` is the TileSet. Solid tiles get full 16×16 collision.
+- `levels/cave_tile_painter.gd` (`@tool` TileMapLayer) autotiles an ASCII `layout` (`#` solid, `.` air).
+  Press "Rebuild From Layout" in the Inspector to regenerate it. Layout rules:
+  - air gaps of at least 2 tiles
+  - free-floating blocks exactly 2×2
+  - walkable tops on even rows
+- **Input actions:** `move_left`/`move_right` and `jump`.
+  - Keyboard: arrows or A/D to move, Space to jump.
+  - Gamepad: d-pad or left stick to move, and joypad button 0 to jump. Button 0 is the bottom face
+    button, which is B on a Switch layout, matching the GDD.
 
 ## Conventions
 - GDScript with static typing (`var x: float`, `:=`, typed function signatures). Tunables are `@export`.
