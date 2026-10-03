@@ -64,9 +64,8 @@ extends CharacterBody2D
 @export var ledge_snap_range: float = 8.0
 # How far past the body edge to look for the wall.
 @export var ledge_reach: float = 4.0
-# Brief hold before a climb can start. Holding toward the wall when you
-# catch it climbs straight away, and without this the hang would never
-# show at all.
+# Brief hold before a climb can start, so Up held through the catch
+# still shows the hang for a beat instead of skipping straight past it.
 @export var ledge_catch_time: float = 0.08
 @export var ledge_climb_time: float = 0.33
 # How far onto the ledge the climb finishes, so the whole body clears
@@ -182,7 +181,7 @@ func _physics_process(delta: float) -> void:
 			and velocity.y >= 0.0 and _try_grab_ledge(int(facing))):
 		return
 
-	_update_animation(wall_side, was_on_floor)
+	_update_animation(direction, wall_side, was_on_floor)
 
 
 func _apply_movement(direction: float, wall_side: int, delta: float) -> void:
@@ -325,20 +324,19 @@ func _try_grab_ledge(side: int) -> bool:
 func _process_ledge_hang(direction: float, delta: float) -> void:
 	ledge_timer += delta
 	velocity = Vector2.ZERO
-	var toward := direction != 0.0 and signf(direction) == ledge_side
-	var away := direction != 0.0 and not toward
+	# Jump does nothing on a ledge. The press is discarded rather than
+	# left in the buffer, where it would fire as a wall jump the moment
+	# the player drops.
+	jump_buffer_timer = 0.0
+	var away := direction != 0.0 and signf(direction) != ledge_side
 
-	if jump_buffer_timer > 0.0:
-		# Ledge jump: a quick pop straight up, faster than the full
-		# climb, for players who want to keep their momentum.
-		_release_ledge()
-		velocity.y = jump_velocity
-		jump_buffer_timer = 0.0
-		_play("jump")
-	elif away or Input.is_action_pressed("crouch"):
+	if away or Input.is_action_pressed("crouch"):
 		_release_ledge()
 		_play("fall")
-	elif ledge_timer >= ledge_catch_time and (toward or Input.is_action_pressed("move_up")):
+	# Climbing is Up only, never toward the wall. Toward is usually
+	# already held when the grab happens, so it would mount instantly;
+	# Up makes mounting a deliberate choice.
+	elif ledge_timer >= ledge_catch_time and Input.is_action_pressed("move_up"):
 		_start_ledge_climb()
 
 
@@ -402,7 +400,7 @@ func _wall_side() -> int:
 	return 0
 
 
-func _update_animation(wall_side: int, was_on_floor: bool) -> void:
+func _update_animation(direction: float, wall_side: int, was_on_floor: bool) -> void:
 	if dash_timer > 0.0:
 		sprite.flip_h = dash_direction < 0.0
 		_play("dash")
@@ -423,6 +421,14 @@ func _update_animation(wall_side: int, was_on_floor: bool) -> void:
 
 	if not is_on_floor():
 		_play("jump" if velocity.y < 0.0 else "fall")
+		return
+
+	# Running into a wall pushes against it instead. Without this the run
+	# cycle stutters: move_and_slide() zeroes velocity on frames where it
+	# registers the wall and not on others, so the speed check flickers.
+	# The wall probe is used instead of is_on_wall(), which flickers too.
+	if direction != 0.0 and _wall_side() == int(signf(direction)):
+		_play("push")
 		return
 
 	var moving := absf(velocity.x) > run_anim_threshold

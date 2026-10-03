@@ -49,9 +49,13 @@ ZL crouch · ZR dash · D-pad up for map, down for inventory. Keyboard bindings 
     still counts briefly after drifting off a wall (wall coyote time).
   - **Ledge grab:** catches automatically when the player is falling, facing a wall, and the hands come
     within 8px of a ledge top that has standing room. It uses physics ray and shape probes, not tile reads.
-    - From the hang: toward the ledge or Up climbs, jump does a ledge jump, and away or Down drops.
+    - From the hang: only Up climbs, which makes mounting deliberate. Jump is ignored, and away or Down
+      drops.
     - The climb art is drawn in place, so `CLIMB_KEYS` moves the body pose by pose. Re-measure it if the
       climb sheet changes.
+  - **Push:** running into a wall on the ground plays `push`. The check uses the `_wall_side()` probe,
+    because `is_on_wall()` flickers against walls. The push frames use AtlasTexture margins to sit 6px back
+    and 2px down, so the hands meet the wall face. A real push/pull ability is planned.
   - **Ability flags:** `can_dash`, `can_wall_jump` and `can_ledge_grab` are the hooks for staff upgrades.
 - `levels/test_room.tscn` (the main scene) is a movement sandbox.
   - `test_room.gd` sets the camera limits and respawns the player after a fall into the pit.

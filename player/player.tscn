@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://assets/Wall Land/player wall land 48x48.png" id="8_wall_land"]
 [ext_resource type="Texture2D" path="res://assets/Wall Slide/player wall slide 48x48.png" id="9_wall_slide"]
 [ext_resource type="Texture2D" path="res://assets/Ledge Grab-Climb/player ledge climb 48x48.png" id="10_ledge"]
+[ext_resource type="Texture2D" path="res://assets/Push/player push 48x48.png" id="11_push"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle_0"]
 atlas = ExtResource("2_idle")
@@ -251,6 +252,56 @@ region = Rect2(144, 0, 48, 48)
 atlas = ExtResource("10_ledge")
 region = Rect2(192, 0, 48, 48)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_push_0"]
+atlas = ExtResource("11_push")
+region = Rect2(0, 0, 48, 48)
+margin = Rect2(0, 4, 12, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_push_1"]
+atlas = ExtResource("11_push")
+region = Rect2(48, 0, 48, 48)
+margin = Rect2(0, 4, 12, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_push_2"]
+atlas = ExtResource("11_push")
+region = Rect2(96, 0, 48, 48)
+margin = Rect2(0, 4, 12, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_push_3"]
+atlas = ExtResource("11_push")
+region = Rect2(144, 0, 48, 48)
+margin = Rect2(0, 4, 12, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_push_4"]
+atlas = ExtResource("11_push")
+region = Rect2(192, 0, 48, 48)
+margin = Rect2(0, 4, 12, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_push_5"]
+atlas = ExtResource("11_push")
+region = Rect2(240, 0, 48, 48)
+margin = Rect2(0, 4, 12, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_push_6"]
+atlas = ExtResource("11_push")
+region = Rect2(288, 0, 48, 48)
+margin = Rect2(0, 4, 12, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_push_7"]
+atlas = ExtResource("11_push")
+region = Rect2(336, 0, 48, 48)
+margin = Rect2(0, 4, 12, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_push_8"]
+atlas = ExtResource("11_push")
+region = Rect2(384, 0, 48, 48)
+margin = Rect2(0, 4, 12, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_push_9"]
+atlas = ExtResource("11_push")
+region = Rect2(432, 0, 48, 48)
+margin = Rect2(0, 4, 12, 4)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_player"]
 animations = [{
 "frames": [{
@@ -487,6 +538,41 @@ animations = [{
 "loop": false,
 "name": &"ledge_climb",
 "speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_push_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_push_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_push_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_push_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_push_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_push_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_push_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_push_7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_push_8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_push_9")
+}],
+"loop": true,
+"name": &"push",
+"speed": 10.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
