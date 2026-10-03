@@ -324,19 +324,21 @@ func _try_grab_ledge(side: int) -> bool:
 func _process_ledge_hang(direction: float, delta: float) -> void:
 	ledge_timer += delta
 	velocity = Vector2.ZERO
-	# Jump does nothing on a ledge. The press is discarded rather than
-	# left in the buffer, where it would fire as a wall jump the moment
-	# the player drops.
-	jump_buffer_timer = 0.0
 	var away := direction != 0.0 and signf(direction) != ledge_side
 
 	if away or Input.is_action_pressed("crouch"):
+		# A jump pressed while hanging is discarded on the way down,
+		# otherwise it would fire as a wall jump the moment we let go.
+		jump_buffer_timer = 0.0
 		_release_ledge()
 		_play("fall")
-	# Climbing is Up only, never toward the wall. Toward is usually
-	# already held when the grab happens, so it would mount instantly;
-	# Up makes mounting a deliberate choice.
-	elif ledge_timer >= ledge_catch_time and Input.is_action_pressed("move_up"):
+	# Up or a fresh jump press mounts, never toward the wall. Toward is
+	# usually already held when the grab happens, so it would mount
+	# instantly. Jump uses the buffer (a press, not a hold) so a jump
+	# held from before the catch doesn't mount on its own; a press
+	# during the catch window is kept until the window ends.
+	elif ledge_timer >= ledge_catch_time and (Input.is_action_pressed("move_up") or jump_buffer_timer > 0.0):
+		jump_buffer_timer = 0.0
 		_start_ledge_climb()
 
 

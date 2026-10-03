@@ -49,8 +49,8 @@ ZL crouch · ZR dash · D-pad up for map, down for inventory. Keyboard bindings 
     still counts briefly after drifting off a wall (wall coyote time).
   - **Ledge grab:** catches automatically when the player is falling, facing a wall, and the hands come
     within 8px of a ledge top that has standing room. It uses physics ray and shape probes, not tile reads.
-    - From the hang: only Up climbs, which makes mounting deliberate. Jump is ignored, and away or Down
-      drops.
+    - From the hang: Up or a fresh jump press climbs. Toward the ledge never climbs, which keeps mounting
+      deliberate. Away or Down drops.
     - The climb art is drawn in place, so `CLIMB_KEYS` moves the body pose by pose. Re-measure it if the
       climb sheet changes.
   - **Push:** running into a wall on the ground plays `push`. The check uses the `_wall_side()` probe,
