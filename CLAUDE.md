@@ -42,8 +42,15 @@ ZL crouch · ZR grab/climb · D-pad moves (up climbs, down crouches); Minus open
     still.
   - `respawn()` returns the player to the spawn point.
   - The current tuning gives a jump of about 75px (4.5 tiles).
-  - **Dash:** 300px/s for 0.15s (about 45px) with gravity off. The player gets one air dash per jump. A jump
-    cancels the dash, and dashing off a wall goes away from it.
+  - **Dash:** eight directions, Celeste-style. The direction comes from the d-pad or stick snapped to
+    8-way, or facing if nothing is held. It moves at 300px/s for 0.15s (about 45px in every direction) with
+    gravity off, and the player gets one air dash per jump.
+    - A diagonal that meets a surface slides along it (up a wall, along the floor). The dash only ends
+      early when it's fully blocked (`get_real_velocity()`).
+    - The exit runs at `max_speed` in the dash direction, with upward exits scaled by 0.75.
+    - On a wall or climb, the part of the direction that points into the wall is flipped away from it.
+    - A jump cancels the dash. Straight up and down use the jump and fall poses, because the pack has no
+      vertical dash art.
   - **Wall slide and wall jump:** the slide caps the fall at 60px/s while holding toward a wall. The jump
     pushes away from the wall, then ignores input for 0.14s. Walls are detected with `test_move`, so a jump
     still counts briefly after drifting off a wall (wall coyote time).

@@ -34,12 +34,18 @@ extends CharacterBody2D
 @export var coyote_time: float = 0.12
 @export var jump_buffer_time: float = 0.12
 
-# Dash. Speed x duration is the distance (~45px, just under 3 tiles).
+# Dash. Eight directions like Celeste, read from the held direction
+# (facing if nothing is held). Speed x duration is the distance (~45px,
+# just under 3 tiles) in every direction - diagonals aren't faster.
 # Gravity is suspended for the whole dash so it reads as a committed,
-# straight line - the Hollow Knight shade-cloak feel rather than a hop.
+# straight line rather than a hop.
 @export var dash_speed: float = 300.0
 @export var dash_duration: float = 0.15
 @export var dash_cooldown: float = 0.25
+# An upward dash hands back only this share of its exit speed, so it
+# carries on rising a little instead of stalling dead at the end, but
+# doesn't turn into a second jump. 0.75 is Celeste's value.
+@export var dash_end_up_multiplier: float = 0.75
 
 # Wall slide and wall jump
 @export var wall_slide_speed: float = 60.0
@@ -111,7 +117,7 @@ var facing: float = 1.0
 
 var dash_timer: float = 0.0
 var dash_cooldown_timer: float = 0.0
-var dash_direction: float = 1.0
+var dash_direction: Vector2 = Vector2.RIGHT
 # One dash per trip through the air, refilled on the ground or a wall.
 var has_air_dash: bool = true
 
@@ -180,7 +186,7 @@ func _physics_process(delta: float) -> void:
 	dash_cooldown_timer -= delta
 	if (can_dash and Input.is_action_just_pressed("dash") and dash_cooldown_timer <= 0.0
 			and (is_on_floor() or has_air_dash)):
-		_start_dash(direction)
+		_start_dash(direction, Input.get_axis("move_up", "crouch"))
 
 	# A jump during a dash cancels it rather than waiting it out. The
 	# dash is longer than the jump buffer, so otherwise an early press
@@ -193,7 +199,7 @@ func _physics_process(delta: float) -> void:
 
 	if dash_timer > 0.0:
 		dash_timer -= delta
-		velocity = Vector2(dash_direction * dash_speed, 0.0)
+		velocity = dash_direction * dash_speed
 		if dash_timer <= 0.0:
 			_end_dash()
 	elif is_climbing:
@@ -206,9 +212,10 @@ func _physics_process(delta: float) -> void:
 	var was_on_floor := is_on_floor()
 	move_and_slide()
 
-	# Dashing into a wall ends the dash there, instead of grinding
-	# against it for the rest of its duration.
-	if dash_timer > 0.0 and is_on_wall():
+	# A dash only ends early when it's fully blocked - straight into a
+	# wall, floor or ceiling. A diagonal that meets a surface slides along
+	# it instead (up a wall, along the floor), the way Celeste's does.
+	if dash_timer > 0.0 and get_real_velocity().length() < dash_speed * 0.1:
 		_end_dash()
 
 	# Checked after moving so the ledge test uses this frame's position.
@@ -373,16 +380,26 @@ func _consume_jump() -> void:
 	wall_coyote_timer = 0.0
 
 
-func _start_dash(direction: float) -> void:
-	dash_direction = signf(direction) if direction != 0.0 else facing
+func _start_dash(direction: float, vertical: float) -> void:
+	# Snapped to eight directions: the stick's exact angle is ignored, so
+	# a slightly-off diagonal still dashes at a clean 45 degrees.
+	var dir := Vector2(signf(direction), signf(vertical))
+	if dir == Vector2.ZERO:
+		dir.x = facing
 	# Off a wall the held direction points into it, which would end the
-	# dash on its first frame. Dash away from the wall instead.
+	# dash on its first frame. Flip that part away from the wall, so
+	# toward-and-up from a climb becomes away-and-up.
+	var wall := 0
 	if is_wall_sliding:
-		dash_direction = -last_wall_side
+		wall = last_wall_side
 	elif is_climbing:
-		dash_direction = -climb_side
+		wall = climb_side
+	if wall != 0 and dir.x == wall:
+		dir.x = -wall
+	dash_direction = dir.normalized()
 	is_climbing = false
-	facing = dash_direction
+	if dir.x != 0.0:
+		facing = dir.x
 	dash_timer = dash_duration
 	dash_cooldown_timer = dash_cooldown
 	has_air_dash = false
@@ -394,7 +411,9 @@ func _end_dash() -> void:
 	dash_timer = 0.0
 	# Hand back at run speed rather than dash speed, so the player
 	# doesn't skate on after the dash visibly ends.
-	velocity.x = dash_direction * max_speed
+	velocity = dash_direction * max_speed
+	if velocity.y < 0.0:
+		velocity.y *= dash_end_up_multiplier
 
 
 # Looks for a grabbable ledge on `side` with three physics probes rather
@@ -568,8 +587,14 @@ func _is_wall(side: int) -> bool:
 
 func _update_animation(direction: float, wall_side: int, was_on_floor: bool) -> void:
 	if dash_timer > 0.0:
-		sprite.flip_h = dash_direction < 0.0
-		_play("dash")
+		# The pack only has a sideways dash pose. Straight up or down
+		# borrow the jump and fall poses, since rotating pixel art off
+		# the 90-degree grid would make it jaggy.
+		if dash_direction.x == 0.0:
+			_play("jump" if dash_direction.y < 0.0 else "fall")
+		else:
+			sprite.flip_h = dash_direction.x < 0.0
+			_play("dash")
 		return
 
 	if is_climbing:
