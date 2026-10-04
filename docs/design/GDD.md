@@ -126,7 +126,8 @@ Climbing and wall-shimmying (Fez-inspired), crouch-to-crawl, hold-crouch-to-sit,
 - **Dash.** A horizontal dash of about 3 tiles with gravity suspended, in the Hollow Knight style. The player gets one air dash per jump, refilled on the ground or a wall.
 - **Wall slide and wall jump.** Holding toward a wall slows the fall, and jumping kicks off the wall (Celeste/Hollow Knight). Wall jumping wasn't in the original list. It's in as a feel test, and whether it stays as a base move, becomes an upgrade, or gets folded into Fez-style climbing is still open.
 - **Ledge grab and climb.** An automatic catch when falling at a ledge. Pressing up or jump climbs. Holding toward the wall doesn't, so mounting stays a deliberate choice. Pressing away or down drops. This is the "climb" from the tutorial list in its simplest form, and Fez-style wall shimmying can build on the same hang state.
-- **Ability gating.** All three are behind ability flags on the player, so any of them can become a staff upgrade.
+- **Wall climb (Celeste-style).** Hold grab (ZR) on a wall to cling. Up climbs, Down slides, and stamina is 3 seconds of upward climbing. Stamina refills only on the ground, and the player pulses red when it runs low. Jumping off the wall is a climb jump (straight up, costs stamina), or a wall jump when holding away. Reaching the top hands off to the ledge hang. This is the base for the Fez-style climbing and shimmying above.
+- **Ability gating.** All of these are behind ability flags on the player, so any of them can become a staff upgrade.
 
 ### Music & Secrets
 
@@ -164,14 +165,15 @@ Minimal text throughout (Hyper Light Drifter-style), except in the home desert r
 
 | Button | Action |
 | ----- | ----- |
-| A | Interact |
+| A | Dash |
 | B | Jump |
 | X | Throw staff / recall staff |
 | Y | Attack |
 | LB | *(unassigned)* |
+| *(unassigned)* | Interact (moved off A when dash took it) |
 | RB (hold) | Instrument mode — X + Y + B + A play notes while held |
 | ZL | Crouch |
-| ZR | Dash |
+| ZR | Grab / climb (hold) |
 | D-pad Up | Map |
 | D-pad Down | Inventory |
 

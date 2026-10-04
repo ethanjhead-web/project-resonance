@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" path="res://assets/Wall Slide/player wall slide 48x48.png" id="9_wall_slide"]
 [ext_resource type="Texture2D" path="res://assets/Ledge Grab-Climb/player ledge climb 48x48.png" id="10_ledge"]
 [ext_resource type="Texture2D" path="res://assets/Push/player push 48x48.png" id="11_push"]
+[ext_resource type="Texture2D" path="res://assets/Climb (facing side of player)/Player Side-Climb 48x48.png" id="12_climb"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle_0"]
 atlas = ExtResource("2_idle")
@@ -302,6 +303,22 @@ atlas = ExtResource("11_push")
 region = Rect2(432, 0, 48, 48)
 margin = Rect2(0, 4, 12, 4)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_climb_0"]
+atlas = ExtResource("12_climb")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_climb_1"]
+atlas = ExtResource("12_climb")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_climb_2"]
+atlas = ExtResource("12_climb")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_climb_3"]
+atlas = ExtResource("12_climb")
+region = Rect2(144, 0, 48, 48)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_player"]
 animations = [{
 "frames": [{
@@ -573,6 +590,23 @@ animations = [{
 "loop": true,
 "name": &"push",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_climb_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_climb_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_climb_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_climb_3")
+}],
+"loop": true,
+"name": &"climb",
+"speed": 8.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]

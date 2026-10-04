@@ -15,6 +15,7 @@ extends CharacterBody2D
 @export var can_dash: bool = true
 @export var can_wall_jump: bool = true
 @export var can_ledge_grab: bool = true
+@export var can_climb: bool = true
 
 # Horizontal movement
 @export var max_speed: float = 120.0
@@ -53,6 +54,25 @@ extends CharacterBody2D
 # wall still counts as a wall jump.
 @export var wall_coyote_time: float = 0.1
 @export var wall_check_distance: float = 2.0
+
+# Wall climb (Celeste-style: hold grab against a wall). Speeds are
+# Celeste's, scaled by our run speed so the climb keeps the same
+# relationship to running that it has there.
+@export var climb_up_speed: float = 60.0
+@export var climb_down_speed: float = 110.0
+# Stamina is measured in seconds of climbing upward. It only refills on
+# the ground, which is what turns a wall into a route you plan rather
+# than a place you can rest.
+@export var climb_stamina: float = 3.0
+# Drain per second while holding still, relative to climbing up. 0.22
+# is Celeste's ratio: clinging buys time, climbing spends it.
+@export var climb_hold_drain: float = 0.22
+# Stamina cost of a climb jump (straight up off the wall). Celeste's
+# cost is a quarter of the full bar.
+@export var climb_jump_cost: float = 0.75
+# Below this the player pulses red, so running low is visible, not
+# just felt. Celeste warns at about a fifth of the bar.
+@export var climb_tired_threshold: float = 0.6
 
 # Ledge grab and climb
 # Where the fingertips sit relative to the feet in the hang frame. The
@@ -95,6 +115,10 @@ var last_wall_side: int = 0
 var wall_jump_lock_timer: float = 0.0
 var is_wall_sliding: bool = false
 
+var is_climbing: bool = false
+var climb_side: int = 0
+var stamina: float = 0.0
+
 enum LedgeState { NONE, HANGING, CLIMBING }
 var ledge_state: LedgeState = LedgeState.NONE
 var ledge_side: int = 0
@@ -108,10 +132,12 @@ var ledge_regrab_timer: float = 0.0
 
 func _ready() -> void:
 	spawn_position = global_position
+	stamina = climb_stamina
 
 
 func _physics_process(delta: float) -> void:
 	var direction := Input.get_axis("move_left", "move_right")
+	_update_tired_tint()
 
 	# Jump buffering: a press slightly before landing still counts,
 	# instead of getting silently dropped.
@@ -133,6 +159,7 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor():
 		coyote_timer = coyote_time
 		has_air_dash = true
+		stamina = climb_stamina
 	else:
 		coyote_timer -= delta
 
@@ -156,11 +183,16 @@ func _physics_process(delta: float) -> void:
 	if dash_timer > 0.0 and jump_buffer_timer > 0.0 and (coyote_timer > 0.0 or wall_coyote_timer > 0.0):
 		_end_dash()
 
+	if not is_climbing and dash_timer <= 0.0 and _can_start_climb(direction):
+		_start_climb()
+
 	if dash_timer > 0.0:
 		dash_timer -= delta
 		velocity = Vector2(dash_direction * dash_speed, 0.0)
 		if dash_timer <= 0.0:
 			_end_dash()
+	elif is_climbing:
+		_apply_climb(direction, delta)
 	else:
 		_apply_movement(direction, wall_side, delta)
 
@@ -177,8 +209,10 @@ func _physics_process(delta: float) -> void:
 	# Checked after moving so the ledge test uses this frame's position.
 	# Only on the way down (or flat, mid-dash): grabbing while rising
 	# would interrupt jumps that were already going to clear the ledge.
+	# Climbing up is the exception - reaching the top of a wall hands off
+	# to the ledge hang, and holding Up then mounts it.
 	if (can_ledge_grab and ledge_regrab_timer <= 0.0 and not is_on_floor()
-			and velocity.y >= 0.0 and _try_grab_ledge(int(facing))):
+			and (velocity.y >= 0.0 or is_climbing) and _try_grab_ledge(int(facing))):
 		return
 
 	_update_animation(direction, wall_side, was_on_floor)
@@ -223,16 +257,97 @@ func _apply_movement(direction: float, wall_side: int, delta: float) -> void:
 			velocity.y = jump_velocity
 			_consume_jump()
 		elif wall_coyote_timer > 0.0:
-			velocity = Vector2(-last_wall_side * wall_jump_velocity.x, wall_jump_velocity.y)
-			facing = -last_wall_side
-			wall_jump_lock_timer = wall_jump_lock_time
-			is_wall_sliding = false
-			_consume_jump()
+			_wall_jump(last_wall_side)
 
 	# Variable jump height: releasing the button early cuts the
 	# jump short, so tapping gives a hop and holding gives full height.
 	if Input.is_action_just_released("jump") and velocity.y < 0.0:
 		velocity.y *= jump_cut_multiplier
+
+
+func _wall_jump(side: int) -> void:
+	velocity = Vector2(-side * wall_jump_velocity.x, wall_jump_velocity.y)
+	facing = -side
+	wall_jump_lock_timer = wall_jump_lock_time
+	is_wall_sliding = false
+	_consume_jump()
+
+
+# Celeste's grab rules: hold grab, face a wall, and not be rising - so a
+# jump past a wall isn't snagged on the way up, but you catch at the
+# apex. On the ground it also needs Up, otherwise holding grab while
+# walking along a wall would stick you to it.
+func _can_start_climb(direction: float) -> bool:
+	if not can_climb or stamina <= 0.0 or not Input.is_action_pressed("grab"):
+		return false
+	if velocity.y < 0.0 or not _is_wall(int(facing)):
+		return false
+	# Moving away from the wall means the player is leaving it.
+	if direction != 0.0 and signf(direction) != facing:
+		return false
+	return not is_on_floor() or Input.is_action_pressed("move_up")
+
+
+func _start_climb() -> void:
+	is_climbing = true
+	climb_side = int(facing)
+	is_wall_sliding = false
+	wall_jump_lock_timer = 0.0
+	velocity = Vector2.ZERO
+
+
+func _apply_climb(direction: float, delta: float) -> void:
+	if not Input.is_action_pressed("grab") or not _is_wall(climb_side):
+		# Let go, or climbed down off the bottom of the wall.
+		is_climbing = false
+		_apply_movement(direction, 0, delta)
+		return
+	# Standing on the ground with no Up held: back to walking.
+	if is_on_floor() and not Input.is_action_pressed("move_up"):
+		is_climbing = false
+		_apply_movement(direction, 0, delta)
+		return
+
+	if jump_buffer_timer > 0.0:
+		is_climbing = false
+		if direction != 0.0 and signf(direction) == -climb_side:
+			_wall_jump(climb_side)
+		else:
+			# Climb jump: straight up the wall for a chunk of stamina.
+			# Grab held through it re-catches at the apex, which is how
+			# Celeste lets you scale a wall faster than climbing.
+			velocity = Vector2(0.0, jump_velocity)
+			stamina -= climb_jump_cost
+			_consume_jump()
+		return
+
+	var vertical := Input.get_axis("move_up", "crouch")
+	if vertical < 0.0:
+		velocity.y = -climb_up_speed
+		stamina -= delta
+	elif vertical > 0.0:
+		# Sliding down is free, so a tired player can still back off.
+		velocity.y = climb_down_speed
+	else:
+		velocity.y = 0.0
+		stamina -= climb_hold_drain * delta
+	# A small push into the wall keeps move_and_slide() in contact with it.
+	velocity.x = climb_side * 10.0
+
+	if stamina <= 0.0:
+		stamina = 0.0
+		is_climbing = false
+
+
+# Soft red pulse while climbing on low stamina. It's a tint fade rather
+# than a hard flash, and slower than 3 per second, so it stays well clear
+# of photosensitivity limits.
+func _update_tired_tint() -> void:
+	if is_climbing and stamina < climb_tired_threshold:
+		var pulse := (sin(Time.get_ticks_msec() / 1000.0 * TAU * 2.0) + 1.0) * 0.5
+		sprite.modulate = Color.WHITE.lerp(Color(1.0, 0.35, 0.35), pulse)
+	else:
+		sprite.modulate = Color.WHITE
 
 
 func _consume_jump() -> void:
@@ -247,6 +362,9 @@ func _start_dash(direction: float) -> void:
 	# dash on its first frame. Dash away from the wall instead.
 	if is_wall_sliding:
 		dash_direction = -last_wall_side
+	elif is_climbing:
+		dash_direction = -climb_side
+	is_climbing = false
 	facing = dash_direction
 	dash_timer = dash_duration
 	dash_cooldown_timer = dash_cooldown
@@ -314,6 +432,7 @@ func _try_grab_ledge(side: int) -> bool:
 	velocity = Vector2.ZERO
 	dash_timer = 0.0
 	is_wall_sliding = false
+	is_climbing = false
 	has_air_dash = true
 	# The ledge sheet is drawn holding a ledge on the right.
 	sprite.flip_h = side < 0
@@ -395,17 +514,37 @@ func _process_ledge_climb(delta: float) -> void:
 # normal check stops a ceiling or floor corner counting as a wall.
 func _wall_side() -> int:
 	for side: int in [1, -1]:
-		var collision := KinematicCollision2D.new()
-		if test_move(global_transform, Vector2(side * wall_check_distance, 0.0), collision):
-			if absf(collision.get_normal().x) > 0.7:
-				return side
+		if _is_wall(side):
+			return side
 	return 0
+
+
+func _is_wall(side: int) -> bool:
+	var collision := KinematicCollision2D.new()
+	if test_move(global_transform, Vector2(side * wall_check_distance, 0.0), collision):
+		return absf(collision.get_normal().x) > 0.7
+	return false
 
 
 func _update_animation(direction: float, wall_side: int, was_on_floor: bool) -> void:
 	if dash_timer > 0.0:
 		sprite.flip_h = dash_direction < 0.0
 		_play("dash")
+		return
+
+	if is_climbing:
+		# The climb sheet is drawn against a wall on the right. The cycle
+		# runs forward going up, backward sliding down, and holds its
+		# frame while clinging, so the limbs only move when the body does.
+		sprite.flip_h = climb_side < 0
+		if sprite.animation != "climb":
+			sprite.play("climb")
+		if velocity.y < 0.0:
+			sprite.play("climb")
+		elif velocity.y > 0.0:
+			sprite.play_backwards("climb")
+		else:
+			sprite.pause()
 		return
 
 	if is_wall_sliding:
@@ -462,3 +601,5 @@ func respawn() -> void:
 	is_wall_sliding = false
 	has_air_dash = true
 	ledge_state = LedgeState.NONE
+	is_climbing = false
+	stamina = climb_stamina
