@@ -67,10 +67,12 @@ ZL crouch · ZR grab/climb · D-pad moves (up climbs, down crouches); Minus open
     because `is_on_wall()` flickers against walls. The push frames use AtlasTexture margins to sit 6px back
     and 2px down, so the hands meet the wall face. A real push/pull ability is planned.
   - **Climb** (Celeste-style):
-    - **Grab:** hold `grab` facing a wall while not rising. From the ground it also needs Up. Starting needs
-      the wall to cover the whole body (`_is_wall_full_height`, as for the slide), so feet-only contact never
-      shows the hands gripping air. Once on, only the hands need to touch (`_is_wall_at_hands`): the player
-      can climb down until hanging by the arms from a wall's bottom edge.
+    - **Grab:** hold `grab` facing a wall while not rising. From the ground it also needs Up. Starting and
+      staying on both need the wall level with the hands (`_is_wall_at_hands`), and the feet don't matter.
+      Feet-only contact (hands above the top) never grabs, so the hands never grip air; near the top, grab
+      catches the ledge instead. The lower part of a small floating block can be grabbed from below, and a
+      climb down continues until the player hangs by the arms from the bottom edge. The wall slide still
+      needs head and feet (`_is_wall_full_height`).
     - **Moving:** Up climbs at 60px/s, Down slides at 110px/s, and holding still clings.
     - **Stamina:** 3 seconds of upward climbing. Holding still drains at 0.22 times that rate, sliding down
       is free, and a climb jump costs 0.75. It refills only on the ground.
