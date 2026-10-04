@@ -22,7 +22,7 @@ building a system. When a design decision gets made or changed, update the GDD i
 
 ## Controls (gamepad)
 A dash · B jump · X throw/recall staff · Y attack · hold RB for instrument mode (X/Y/B/A play notes) ·
-ZL crouch · ZR grab/climb · D-pad up for map, down for inventory. Keyboard bindings go through the Input Map.
+ZL crouch · ZR grab/climb · D-pad moves (up climbs, down crouches); map and inventory need new buttons. Keyboard bindings go through the Input Map.
 
 ## Current state of the code
 - **Display:** 480×270 base resolution, integer-scaled (window 1440×810), nearest filtering. All gameplay
@@ -79,10 +79,11 @@ ZL crouch · ZR grab/climb · D-pad up for map, down for inventory. Keyboard bin
 - **Input actions:** `move_left`/`move_right`, `move_up`, `crouch`, `jump`, `dash` and `grab`.
   - Keyboard: arrows or WASD to move (Up/W climbs, Down/S crouches), Space to jump, Shift to dash, Z to grab.
   - Gamepad:
-    - Move: d-pad or left stick.
+    - Move: d-pad or left stick. The d-pad is the primary way the player plays, so up/down on it climb and
+      crouch.
     - Jump: button 0. Dash: button 1. Grab: ZR (trigger axis 5).
     - Stick up/down maps to `move_up`/`crouch`, and ZL (trigger axis 4) also crouches.
-    - The d-pad's up/down stay free for the map and inventory.
+    - Map and inventory (d-pad up/down in the GDD) need new buttons now that the d-pad moves.
   - Godot reads joypad buttons by **position** (Xbox layout), not by the label printed on them. On a Switch
     Pro controller, button 0 (bottom) is B and button 1 (right) is A.
   - Interact lost its button when dash moved to A. It is unassigned until a new button is picked.

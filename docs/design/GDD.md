@@ -174,8 +174,8 @@ Minimal text throughout (Hyper Light Drifter-style), except in the home desert r
 | RB (hold) | Instrument mode — X + Y + B + A play notes while held |
 | ZL | Crouch |
 | ZR | Grab / climb (hold) |
-| D-pad Up | Map |
-| D-pad Down | Inventory |
+| D-pad Up | Climb / up (map moved off it, new button TBD) |
+| D-pad Down | Crouch / down (inventory moved off it, new button TBD) |
 
 ## 8. Sound-Shape System — Cymatics & Chladni Patterns as a World Language
 
