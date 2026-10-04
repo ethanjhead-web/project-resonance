@@ -43,6 +43,11 @@ extends CharacterBody2D
 
 # Wall slide and wall jump
 @export var wall_slide_speed: float = 60.0
+# A slide only starts if the wall carries on at least this far below
+# the feet. A small block is barely taller than the player, so the
+# whole body is against it for just a few frames - without this it
+# flashes a slide pose and drops off again.
+@export var wall_slide_min_length: float = 8.0
 # x pushes away from the wall, y is the upward kick. The push is faster
 # than max_speed so a wall jump visibly launches you off the wall.
 @export var wall_jump_velocity: Vector2 = Vector2(160.0, -330.0)
@@ -210,8 +215,11 @@ func _physics_process(delta: float) -> void:
 	# Only on the way down (or flat, mid-dash): grabbing while rising
 	# would interrupt jumps that were already going to clear the ledge.
 	# Climbing up is the exception - reaching the top of a wall hands off
-	# to the ledge hang, and holding Up then mounts it.
+	# to the ledge hang, and holding Up then mounts it. Catching needs
+	# grab held, like the climb, so ledges only stop the player when
+	# they ask to be stopped.
 	if (can_ledge_grab and ledge_regrab_timer <= 0.0 and not is_on_floor()
+			and Input.is_action_pressed("grab")
 			and (velocity.y >= 0.0 or is_climbing) and _try_grab_ledge(int(facing))):
 		return
 
@@ -243,7 +251,11 @@ func _apply_movement(direction: float, wall_side: int, delta: float) -> void:
 
 	# Sliding only happens while holding toward the wall, so the player
 	# can always choose to drop past a wall at full speed instead.
-	is_wall_sliding = wall_side != 0 and signf(direction) == wall_side and velocity.y > 0.0
+	# Starting a slide needs some wall left below the feet; keeping one
+	# going only needs the feet still on it. See _is_wall_full_height().
+	var below := 0.0 if is_wall_sliding else wall_slide_min_length
+	is_wall_sliding = (wall_side != 0 and signf(direction) == wall_side and velocity.y > 0.0
+			and _is_wall_full_height(wall_side, below))
 	if is_wall_sliding:
 		velocity.y = min(velocity.y, wall_slide_speed)
 		has_air_dash = true
@@ -445,7 +457,8 @@ func _process_ledge_hang(direction: float, delta: float) -> void:
 	velocity = Vector2.ZERO
 	var away := direction != 0.0 and signf(direction) != ledge_side
 
-	if away or Input.is_action_pressed("crouch"):
+	# Releasing grab lets go, the same as on a climb.
+	if away or Input.is_action_pressed("crouch") or not Input.is_action_pressed("grab"):
 		# A jump pressed while hanging is discarded on the way down,
 		# otherwise it would fire as a wall jump the moment we let go.
 		jump_buffer_timer = 0.0
@@ -517,6 +530,28 @@ func _wall_side() -> int:
 		if _is_wall(side):
 			return side
 	return 0
+
+
+# True only when wall covers both head and feet (and, with `below`, runs
+# on past the feet that far). _is_wall() counts any contact, so feet
+# clipping the top corner of a block would start a slide while the body
+# is still in the air above it.
+func _is_wall_full_height(side: int, below: float = 0.0) -> bool:
+	var space := get_world_2d().direct_space_state
+	var exclude: Array[RID] = [get_rid()]
+	var size: Vector2 = (body_shape.shape as RectangleShape2D).size
+	var top := global_position.y + body_shape.position.y - size.y * 0.5
+	var reach := size.x * 0.5 + wall_check_distance
+	# Inset 1px from the top and bottom edges so a ray lying exactly on
+	# a tile seam doesn't count.
+	for y: float in [top + 1.0, global_position.y - 1.0 + below]:
+		var ray := PhysicsRayQueryParameters2D.create(
+				Vector2(global_position.x, y),
+				Vector2(global_position.x + side * reach, y),
+				collision_mask, exclude)
+		if space.intersect_ray(ray).is_empty():
+			return false
+	return true
 
 
 func _is_wall(side: int) -> bool:

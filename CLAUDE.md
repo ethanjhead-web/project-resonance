@@ -22,7 +22,7 @@ building a system. When a design decision gets made or changed, update the GDD i
 
 ## Controls (gamepad)
 A dash · B jump · X throw/recall staff · Y attack · hold RB for instrument mode (X/Y/B/A play notes) ·
-ZL crouch · ZR grab/climb · D-pad moves (up climbs, down crouches); map and inventory need new buttons. Keyboard bindings go through the Input Map.
+ZL crouch · ZR grab/climb · D-pad moves (up climbs, down crouches); Minus opens the inventory; the map needs a new button. Keyboard bindings go through the Input Map.
 
 ## Current state of the code
 - **Display:** 480×270 base resolution, integer-scaled (window 1440×810), nearest filtering. All gameplay
@@ -47,10 +47,13 @@ ZL crouch · ZR grab/climb · D-pad moves (up climbs, down crouches); map and in
   - **Wall slide and wall jump:** the slide caps the fall at 60px/s while holding toward a wall. The jump
     pushes away from the wall, then ignores input for 0.14s. Walls are detected with `test_move`, so a jump
     still counts briefly after drifting off a wall (wall coyote time).
-  - **Ledge grab:** catches automatically when the player is falling, facing a wall, and the hands come
-    within 8px of a ledge top that has standing room. It uses physics ray and shape probes, not tile reads.
-    - From the hang: Up or a fresh jump press climbs. Toward the ledge never climbs, which keeps mounting
-      deliberate. Away or Down drops.
+    - A slide only starts when the wall covers head and feet and continues at least 8px below the feet
+      (`_is_wall_full_height`). That stops a slide pose flashing when the feet clip a block corner, or on
+      a 2×2 block that's barely taller than the player.
+  - **Ledge grab:** catches only while `grab` is held. The player must also be falling (or climbing),
+    facing a wall, with the hands within 8px of a ledge top that has standing room. It uses physics ray and shape probes, not tile reads.
+    - From the hang: Up or a fresh jump press climbs, and toward the ledge never does. Away, Down, or
+      releasing grab drops.
     - The climb art is drawn in place, so `CLIMB_KEYS` moves the body pose by pose. Re-measure it if the
       climb sheet changes.
   - **Push:** running into a wall on the ground plays `push`. The check uses the `_wall_side()` probe,
@@ -76,14 +79,15 @@ ZL crouch · ZR grab/climb · D-pad moves (up climbs, down crouches); map and in
   - air gaps of at least 2 tiles
   - free-floating blocks exactly 2×2
   - walkable tops on even rows
-- **Input actions:** `move_left`/`move_right`, `move_up`, `crouch`, `jump`, `dash` and `grab`.
+- **Input actions:** `move_left`/`move_right`, `move_up`, `crouch`, `jump`, `dash`, `grab` and `inventory`.
   - Keyboard: arrows or WASD to move (Up/W climbs, Down/S crouches), Space to jump, Shift to dash, Z to grab.
   - Gamepad:
     - Move: d-pad or left stick. The d-pad is the primary way the player plays, so up/down on it climb and
       crouch.
     - Jump: button 0. Dash: button 1. Grab: ZR (trigger axis 5).
     - Stick up/down maps to `move_up`/`crouch`, and ZL (trigger axis 4) also crouches.
-    - Map and inventory (d-pad up/down in the GDD) need new buttons now that the d-pad moves.
+    - Inventory: Minus (button 4, "back") or I. Nothing uses it yet.
+    - The map (d-pad up in the GDD) needs a new button now that the d-pad moves.
   - Godot reads joypad buttons by **position** (Xbox layout), not by the label printed on them. On a Switch
     Pro controller, button 0 (bottom) is B and button 1 (right) is A.
   - Interact lost its button when dash moved to A. It is unassigned until a new button is picked.
