@@ -288,11 +288,14 @@ func _wall_jump(side: int) -> void:
 # Celeste's grab rules: hold grab, face a wall, and not be rising - so a
 # jump past a wall isn't snagged on the way up, but you catch at the
 # apex. On the ground it also needs Up, otherwise holding grab while
-# walking along a wall would stick you to it.
+# walking along a wall would stick you to it. The wall has to cover the
+# whole body (same test as the wall slide): with only the feet against
+# it, the hands would be gripping empty air above the top. Above a
+# wall's top, holding grab catches the ledge instead.
 func _can_start_climb(direction: float) -> bool:
 	if not can_climb or stamina <= 0.0 or not Input.is_action_pressed("grab"):
 		return false
-	if velocity.y < 0.0 or not _is_wall(int(facing)):
+	if velocity.y < 0.0 or not _is_wall_full_height(int(facing)):
 		return false
 	# Moving away from the wall means the player is leaving it.
 	if direction != 0.0 and signf(direction) != facing:
@@ -309,8 +312,10 @@ func _start_climb() -> void:
 
 
 func _apply_climb(direction: float, delta: float) -> void:
-	if not Input.is_action_pressed("grab") or not _is_wall(climb_side):
-		# Let go, or climbed down off the bottom of the wall.
+	if not Input.is_action_pressed("grab") or not _is_wall_full_height(climb_side):
+		# Let go, or the wall no longer covers the whole body: climbed
+		# down past its bottom, or up past a top with no room to stand
+		# (where there is room, the ledge grab takes over first).
 		is_climbing = false
 		_apply_movement(direction, 0, delta)
 		return
