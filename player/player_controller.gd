@@ -319,10 +319,13 @@ func _start_climb() -> void:
 
 
 func _apply_climb(direction: float, delta: float) -> void:
-	if not Input.is_action_pressed("grab") or not _is_wall_full_height(climb_side):
-		# Let go, or the wall no longer covers the whole body: climbed
-		# down past its bottom, or up past a top with no room to stand
-		# (where there is room, the ledge grab takes over first).
+	# Once on, the hands are all that has to stay on the wall - the
+	# player can climb down until they're hanging from the bottom edge
+	# by their arms, feet dangling below it.
+	if not Input.is_action_pressed("grab") or not _is_wall_at_hands(climb_side):
+		# Let go, or the hands left the wall: climbed down past its
+		# bottom, or up past a top with no room to stand (where there is
+		# room, the ledge grab takes over first).
 		is_climbing = false
 		_apply_movement(direction, 0, delta)
 		return
@@ -561,21 +564,25 @@ func _wall_side() -> int:
 # clipping the top corner of a block would start a slide while the body
 # is still in the air above it.
 func _is_wall_full_height(side: int, below: float = 0.0) -> bool:
-	var space := get_world_2d().direct_space_state
-	var exclude: Array[RID] = [get_rid()]
+	return _is_wall_at_hands(side) and _is_wall_at(side, global_position.y - 1.0 + below)
+
+
+# True when the wall is level with the hands (the top of the body).
+func _is_wall_at_hands(side: int) -> bool:
 	var size: Vector2 = (body_shape.shape as RectangleShape2D).size
 	var top := global_position.y + body_shape.position.y - size.y * 0.5
-	var reach := size.x * 0.5 + wall_check_distance
-	# Inset 1px from the top and bottom edges so a ray lying exactly on
-	# a tile seam doesn't count.
-	for y: float in [top + 1.0, global_position.y - 1.0 + below]:
-		var ray := PhysicsRayQueryParameters2D.create(
-				Vector2(global_position.x, y),
-				Vector2(global_position.x + side * reach, y),
-				collision_mask, exclude)
-		if space.intersect_ray(ray).is_empty():
-			return false
-	return true
+	# Inset 1px from the top edge (and the feet ray from the bottom edge)
+	# so a ray lying exactly on a tile seam doesn't count.
+	return _is_wall_at(side, top + 1.0)
+
+
+func _is_wall_at(side: int, y: float) -> bool:
+	var size: Vector2 = (body_shape.shape as RectangleShape2D).size
+	var ray := PhysicsRayQueryParameters2D.create(
+			Vector2(global_position.x, y),
+			Vector2(global_position.x + side * (size.x * 0.5 + wall_check_distance), y),
+			collision_mask, [get_rid()])
+	return not get_world_2d().direct_space_state.intersect_ray(ray).is_empty()
 
 
 func _is_wall(side: int) -> bool:
