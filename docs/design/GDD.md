@@ -114,6 +114,8 @@ The central mechanic: one tool that is simultaneously a melee weapon, a throwabl
 
 Concentrated mainly in temples and boss fights. Each region teaches a distinct fighting style or ability tied to its temple, expanding combat options as new regions open.
 
+The boy starts with his fists: a two-hit jab-cross combo on Y. A second press during the jab chains into the cross, and presses are buffered so the combo can be played on the beat rather than in a tight timing window. Each punch commits the feet until the fist has landed and retracted, then movement or a jump cancels the follow-through. Punches work in the air too, where every press is a cross rather than a jab. The jump arc and air steering carry on through the swing, so a punch never stalls the player mid-jump, and landing mid-punch just plants the feet for the rest of it. Grabbing lives on its own button (RB), so Y is purely for attacking.
+
 #### Boss Fights
 
 Each boss fight is divided into two distinct sections — the fight and the escape. Combat and then platforming. Hollow Knight and then Ori.
@@ -123,10 +125,15 @@ Each boss fight is divided into two distinct sections — the fight and the esca
 Climbing and wall-shimmying (Fez-inspired), crouch-to-crawl, hold-crouch-to-sit, charge jump (staff required), air dash, and eventually teleport-to-thrown-staff. Between-region routes emphasize this system hardest.
 
 **Prototyped (test room):**
-- **Dash.** An eight-direction dash of about 3 tiles with gravity suspended, in the Celeste style. A diagonal that meets a wall or the floor slides along it. The player gets one air dash per jump, refilled on the ground or a wall.
+- **Dash.** A in the air dashes (on the ground the same button slides; see below). A dash out of a sprinting takeoff, with ZR still held, runs a little longer, about 4 tiles instead of 3, so carrying momentum into it pays off. Holding ZR through the dash flows straight into a sprint without a second input. Before a dash or dive fires there's a brief wind-up (0.2s): the player hangs still, frozen on the current frame, and brightens with a blue-white glow that holds for the rest of the dash or dive. After an air dash the glow stays on until the dash is refilled, so a spent dash is visible at a glance; it fades out over a few frames on landing, so the moves read as magic being gathered. It stands in for a proper power-up animation. The dash goes left or right only (left or right must be held; neutral or Up does nothing), covers about 3 tiles (4 from a sprint), and suspends gravity. The player gets one air dash per jump, refilled only on the ground. Touching or sliding down a wall, climbing, or hanging from a ledge doesn't refill it. Keeping ZR held after the dash keeps the player sprinting at 1.5x run speed in the held direction, so a dash flows straight into a sprint. The sprint only carries into the air from a sprinting takeoff; holding the button during an ordinary jump adds nothing.
+- **Dive.** Dashing with straight Down held in the air drops the player straight to the ground faster than a fall, like Hollow Knight's Desolate Dive. It can't be steered or cancelled, and on landing the player holds a deep crouch for a heavy 0.8s recovery before standing up. Down with a side held is still a sideways dash. It shares the one air ability with the dash: each trip through the air allows a dash or a dive, not both, refilled only on the ground. On the ground Down + A rolls instead (below). Impact damage and screen shake come later (the shake will respect the reduced-motion toggle).
+- **Hard landing.** A long fall (for now, about the height of the test room's tallest climbable column, 14 tiles) lands with the same heavy crouch and 0.8s recovery as the dive, but without the glow. It makes big drops feel weighty and gives a reason to climb down rather than jump. Grabbing or sliding down a wall on the way breaks the fall, so the drop is measured from the last thing the player was holding on to.
 - **Wall slide and wall jump.** Holding toward a wall slows the fall, and jumping kicks off the wall (Celeste/Hollow Knight). Wall jumping wasn't in the original list. It's in as a feel test, and whether it stays as a base move, becomes an upgrade, or gets folded into Fez-style climbing is still open.
-- **Ledge grab and climb.** Holding grab (ZR) while falling at a ledge catches it, and without grab the player falls past. Pressing up or jump climbs. Holding toward the wall doesn't, so mounting stays a deliberate choice. Pressing away or down, or releasing grab, drops. This is the "climb" from the tutorial list in its simplest form, and Fez-style wall shimmying can build on the same hang state.
-- **Wall climb (Celeste-style).** Hold grab (ZR) on a wall to cling. Up climbs, Down slides, and stamina is 3 seconds of upward climbing. Stamina refills only on the ground, and the player pulses red when it runs low. Jumping off the wall is a climb jump (straight up, costs stamina), or a wall jump when holding away. Reaching the top hands off to the ledge hang. This is the base for the Fez-style climbing and shimmying above.
+- **Ledge grab and climb.** Holding grab (RB) while falling at a ledge catches it, and without grab the player falls past. Pressing up or jump climbs. Holding toward the wall doesn't, so mounting stays a deliberate choice. Pressing away or down, or releasing grab, drops. This is the "climb" from the tutorial list in its simplest form, and Fez-style wall shimmying can build on the same hang state.
+- **Wall climb (Celeste-style).** Only marked surfaces can be climbed, so climbing routes are a level-design choice rather than every wall in the game. Wall slides, wall jumps, wall runs and ledge grabs still work on any wall. In the test room the climbable surface is a flat red strip; final art needs a texture or shape that marks it as well as colour, so it reads for colour-blind players. Hold grab (RB) on a climbable surface to cling; from the ground, attach to it and press Up. Up climbs, Down slides, and stamina is 3 seconds of upward climbing. Stamina refills only on the ground, and the player pulses red when it runs low. Some climbable surfaces cost no stamina at all. They're shown in green for now and will become ladders. Jumping off the wall is always a wall jump, away from it. Unlike Celeste there is no climb jump straight up the wall: spamming one breaks the rhythm, and the game aims to be more rhythmic than Celeste, so climbing up stays a steady, deliberate pace. Reaching the top hands off to the ledge hang. This is the base for the Fez-style climbing and shimmying above.
+- **Attach (push/pull).** On the ground, pressing and holding grab (RB) while standing against a wall holds on to it: the boy braces in a push-pull stance. Holding toward the wall plays the push, holding away plays the pull, and the feet stay planted. Any wall works, but against an ordinary wall it's only the pose. Movable blocks, marked with a blue bar on each side, actually move: holding toward pushes the block and holding away pulls it, slowly and evenly so it reads as effort. Walking into a block pushes it too, without grabbing; grabbing is only needed to pull. Sprinting into one doesn't push it: the boy runs up its face and vaults on top, as with any low wall. A block falls if it's pushed off a ledge. Up on a climbable wall starts the climb; letting go of RB or jumping ends it.
+- **Crouch, crawl, roll and slide.** Holding Down on the ground crouches, and Down with a direction crawls slowly. All three of crouch, roll and slide make the body small enough to fit through a one-tile gap, so low tunnels are crawlspaces; the boy only stands back up once there's room. A while crouched (Down held, or stuck low in a tunnel) rolls: a quick, committed burst of about 3 tiles in the held direction, which a jump can cancel. A on the ground while moving slides, covering about 3 tiles; A standing still does nothing. Out of a sprint the slide starts faster and runs about 4 tiles. Either way it bleeds its speed off before settling into a crouch, so a run can shoot straight into a tunnel. A jump out of a slide keeps the speed. In the air A is the dash instead. The roll has no invincibility yet; whether it dodges through attacks is a decision for when there are enemies.
+- **Wall run.** Sprinting (holding ZR) into a wall on the ground carries the run up it, starting at sprint speed and easing to a stop at 40px (2.5 tiles) for now. At the top of the run the wall behaves as normal: holding toward it slides, holding grab clings, and a wall short enough for the hands to reach its top gets mounted automatically with the ledge-climb animation, so a sprint vaults straight up onto a low ledge. Toward only has to be held to start the run; holding sprint keeps it going, so the player can line up the jump off the wall on the d-pad ahead of time. Jumping during the run is an ordinary wall jump: it doesn't carry the sprint or push off wider, because the jump off a wall run is for gaining height, not distance. Holding away at the top skips the mount. The height is a single tunable value while the feel gets worked out.
 - **Ability gating.** All of these are behind ability flags on the player, so any of them can become a staff upgrade.
 
 ### Music & Secrets
@@ -165,17 +172,18 @@ Minimal text throughout (Hyper Light Drifter-style), except in the home desert r
 
 | Button | Action |
 | ----- | ----- |
-| A | Dash |
+| A | On the ground: slide while moving (further from a sprint); with Down, roll. In the air: dash (longer from a sprinting jump); with Down, dive |
 | B | Jump |
-| X | Throw staff / recall staff |
-| Y | Attack |
+| X | *(unassigned)* |
+| Y | Attack: punch (ground or air) |
+| *(unassigned)* | Throw staff / recall staff (moved off X, new button TBD) |
 | LB | *(unassigned)* |
-| *(unassigned)* | Interact (moved off A when dash took it) |
-| RB (hold) | Instrument mode — X + Y + B + A play notes while held |
-| ZL | Crouch |
-| ZR | Grab / climb (hold) |
+| *(unassigned)* | Interact (X is free) |
+| RB (hold) | Grab: attach to a wall on the ground (push/pull), catch ledges, climb walls. Also planned as instrument mode (X + Y + B + A play notes while held); one of the two has to move before the instrument is built |
+| ZL | *(unassigned)* |
+| ZR | Hold to sprint at 1.5x run speed while a direction is held |
 | D-pad Up | Climb / up (map moved off it, new button TBD) |
-| D-pad Down | Crouch / down |
+| D-pad Down | Crouch (with left/right, crawl) / down |
 | Minus | Inventory |
 
 ## 8. Sound-Shape System — Cymatics & Chladni Patterns as a World Language

@@ -4,14 +4,160 @@
 [ext_resource type="TileSet" path="res://levels/cave_tileset.tres" id="2_tileset"]
 [ext_resource type="Script" path="res://levels/cave_tile_painter.gd" id="3_painter"]
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="4_player"]
+[ext_resource type="Script" path="res://levels/grip_surface.gd" id="5_grip"]
+[ext_resource type="Script" path="res://levels/movable_block.gd" id="6_block"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_room"]
+font_size = 24
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_column"]
+font_size = 10
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
 
 [node name="TestRoom" type="Node2D"]
 script = ExtResource("1_room")
+camera_limits = Rect2i(0, 0, 1536, 368)
 
 [node name="Tiles" type="TileMapLayer" parent="."]
 tile_set = ExtResource("2_tileset")
 script = ExtResource("3_painter")
-layout = "################################################\n#..............................................#\n#..............................................#\n#..............................................#\n#..............................................#\n#..............................................#\n#........................................##....#\n#........................................##....#\n#........................................##....#\n#........................................##....#\n#........................................##....#\n#........................................##....#\n#.................##...............##....##....#\n#.................##...............##....##....#\n#........................................##....#\n#........................................##....#\n#............##...............##.........##....#\n#............##...............##.........##....#\n#.............................##.........##....#\n#.............................##.........##....#\n#.......####..................##...#############\n#.......####..................##...#############\n####################....########################\n####################....########################\n####################....########################\n####################....########################"
+layout = "################################################################################################\n#..............................................##.................................###..........#\n#..............................................##.................................###..........#\n#..............................................##.................................###..........#\n#..............................................##.................................###..........#\n#..............................................##.................................###..........#\n#........................................##....##.................................###..........#\n#........................................##....##.................................###..........#\n#........................................##....##.................................###..........#\n#........................................##....##.................................###..........#\n#........................................##....##.................................###..........#\n#........................................##....##.................................###..........#\n#.................##...............##....##....##.................................###..........#\n#.................##...............##....##....##.................................###..........#\n#........................................##....##.................................###..........#\n#........................................##....##.................................###..........#\n#............##...............##.........##....##.................................###..........#\n#............##...............##.........##....##.................................###..........#\n#.............................##.........##.......................................###..........#\n#.............................##.........##....................................................#\n#.......####..................##...#############################################################\n#.......####..................##...#############################################################\n####################....########################################################################\n####################....########################################################################\n####################....########################################################################\n####################....########################################################################"
+
+[node name="GripSurface" type="Area2D" parent="."]
+position = Vector2(657, 152)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("5_grip")
+size = Vector2(6, 112)
+
+[node name="Ladder" type="Area2D" parent="."]
+position = Vector2(481, 304)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("5_grip")
+size = Vector2(6, 96)
+drains_stamina = false
+
+[node name="Labels" type="Node2D" parent="."]
+
+[node name="A" type="Label" parent="Labels"]
+offset_left = 312.0
+offset_top = 152.0
+offset_right = 360.0
+offset_bottom = 184.0
+text = "A"
+label_settings = SubResource("LabelSettings_room")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="B" type="Label" parent="Labels"]
+offset_left = 1128.0
+offset_top = 152.0
+offset_right = 1176.0
+offset_bottom = 184.0
+text = "B"
+label_settings = SubResource("LabelSettings_room")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="A1" type="Label" parent="Labels"]
+offset_left = 480.0
+offset_top = 298.0
+offset_right = 512.0
+offset_bottom = 310.0
+text = "A1"
+label_settings = SubResource("LabelSettings_column")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="A2" type="Label" parent="Labels"]
+offset_left = 656.0
+offset_top = 202.0
+offset_right = 688.0
+offset_bottom = 214.0
+text = "A2"
+label_settings = SubResource("LabelSettings_column")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="A3" type="Label" parent="Labels"]
+offset_left = 144.0
+offset_top = 330.0
+offset_right = 176.0
+offset_bottom = 342.0
+text = "A3"
+label_settings = SubResource("LabelSettings_column")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="A4" type="Label" parent="Labels"]
+offset_left = 208.0
+offset_top = 266.0
+offset_right = 240.0
+offset_bottom = 278.0
+text = "A4"
+label_settings = SubResource("LabelSettings_column")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="A5" type="Label" parent="Labels"]
+offset_left = 288.0
+offset_top = 202.0
+offset_right = 320.0
+offset_bottom = 214.0
+text = "A5"
+label_settings = SubResource("LabelSettings_column")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="A6" type="Label" parent="Labels"]
+offset_left = 560.0
+offset_top = 202.0
+offset_right = 592.0
+offset_bottom = 214.0
+text = "A6"
+label_settings = SubResource("LabelSettings_column")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="B1" type="Label" parent="Labels"]
+offset_left = 752.0
+offset_top = 154.0
+offset_right = 784.0
+offset_bottom = 166.0
+text = "B1"
+label_settings = SubResource("LabelSettings_column")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="B2" type="Label" parent="Labels"]
+offset_left = 1312.0
+offset_top = 154.0
+offset_right = 1360.0
+offset_bottom = 166.0
+text = "B2"
+label_settings = SubResource("LabelSettings_column")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MovableBlock" type="AnimatableBody2D" parent="."]
+position = Vector2(1152, 304)
+script = ExtResource("6_block")
+
+[node name="B3" type="Label" parent="MovableBlock"]
+offset_left = -16.0
+offset_top = -6.0
+offset_right = 16.0
+offset_bottom = 6.0
+text = "B3"
+label_settings = SubResource("LabelSettings_column")
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Player" parent="." instance=ExtResource("4_player")]
 position = Vector2(72, 352)
