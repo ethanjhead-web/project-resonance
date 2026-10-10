@@ -144,6 +144,30 @@ signal punch_landed(body: Node2D, hit: int)
 # while still facing the wall re-grabs the same ledge next frame.
 @export var ledge_regrab_delay: float = 0.25
 
+# Rope swing. Hold grab to catch a SwingRope anywhere along it; the hands
+# go where the catch box (centred on them) met the rope. The swing is a
+# pendulum from the anchor to the hands, using the player's gravity.
+@export_flags_2d_physics var rope_mask: int = 8
+@export var rope_catch_size: Vector2 = Vector2(16.0, 16.0)
+# Up and Down move the hands along the rope. They stop this far below the
+# anchor, so the head stays clear of the ceiling.
+@export var rope_climb_speed: float = 60.0
+@export var rope_min_hold: float = 16.0
+# Holding the way the swing is already going pushes it along, like
+# pumping a playground swing, until it reaches rope_max_angle (degrees).
+@export var rope_pump_accel: float = 220.0
+@export var rope_max_angle: float = 70.0
+# A little friction, so a swing nobody pumps slowly dies down.
+@export var rope_damping: float = 0.15
+# A jump off the rope keeps the swing's speed and adds this much lift.
+@export var rope_jump_boost: float = -180.0
+# Air steering is ignored this long after a jump off the rope, the same
+# as after a wall jump, so a held direction doesn't cancel the launch.
+@export var rope_release_lock_time: float = 0.2
+# Ropes are ignored this long after letting go. Grab is usually still
+# held, so otherwise the rope would be caught again straight away.
+@export var rope_regrab_delay: float = 0.3
+
 # Wall run. Sprinting into a wall carries the run up it, starting at
 # wall_run_speed and slowing evenly to a stop at wall_run_height pixels.
 # The slowdown is solved from the two, so they stay independent: height
@@ -254,6 +278,18 @@ var ledge_corner: Vector2
 var ledge_timer: float = 0.0
 var ledge_regrab_timer: float = 0.0
 
+# The rope being held, or null. swing_distance is how far down it the
+# hands are, which is the length of the pendulum.
+var swing_rope: SwingRope = null
+var swing_distance: float = 0.0
+# Off from the catch until the first left or right press, so grabbing a
+# rope just hangs there; the swing is something the player starts.
+var swing_started: bool = false
+# A jump off a rope somersaults (air_spin, once through) before handing
+# back to the usual jump and fall poses.
+var is_air_spinning: bool = false
+var rope_regrab_timer: float = 0.0
+
 enum Attack { NONE, JAB, CROSS }
 var attack: Attack = Attack.NONE
 var attack_buffer_timer: float = 0.0
@@ -301,7 +337,7 @@ func _physics_process(delta: float) -> void:
 	# A wall slide or climb breaks the fall, so sliding down a tall wall
 	# isn't a hard landing.
 	if (is_on_floor() or ledge_state != LedgeState.NONE or is_wall_sliding or is_climbing
-			or is_wall_running):
+			or is_wall_running or swing_rope != null):
 		fall_peak_y = global_position.y
 	else:
 		fall_peak_y = minf(fall_peak_y, global_position.y)
@@ -319,6 +355,10 @@ func _physics_process(delta: float) -> void:
 		return
 	if ledge_state == LedgeState.CLIMBING:
 		_process_ledge_climb(delta)
+		return
+	rope_regrab_timer -= delta
+	if swing_rope != null:
+		_process_swing(direction, delta)
 		return
 
 	# Coyote time: a short grace window after walking off a ledge
@@ -453,6 +493,12 @@ func _physics_process(delta: float) -> void:
 	# player against it for the rest of its duration.
 	if dash_timer > 0.0 and get_real_velocity().length() < dash_speed * 0.1:
 		_end_dash()
+
+	# Like the ledge grab, a rope is only caught with grab held. Unlike it,
+	# rising doesn't matter: jumping up to a rope is the usual way on.
+	if (rope_regrab_timer <= 0.0 and not is_on_floor() and not is_diving and windup_timer <= 0.0
+			and Input.is_action_pressed("grab") and _try_catch_rope()):
+		return
 
 	# Checked after moving so the ledge test uses this frame's position.
 	# Only on the way down (or flat, mid-dash): grabbing while rising
@@ -1189,6 +1235,155 @@ func _process_ledge_climb(delta: float) -> void:
 # without moving, so it finds walls the player is near but not pushing
 # into - needed for wall jumps while drifting away from the wall. The
 # normal check stops a ceiling or floor corner counting as a wall.
+# Where the hands are relative to the feet: the hang pose's, since the
+# swing borrows the ledge hang art (drawn holding on to the right).
+func _rope_hand_offset() -> Vector2:
+	return Vector2(facing * ledge_hand_offset.x, ledge_hand_offset.y)
+
+
+func _try_catch_rope() -> bool:
+	var hands := global_position + _rope_hand_offset()
+	var box := RectangleShape2D.new()
+	box.size = rope_catch_size
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = box
+	query.transform = Transform2D(0.0, hands)
+	query.collide_with_areas = true
+	query.collide_with_bodies = false
+	query.collision_mask = rope_mask
+	var hits := get_world_2d().direct_space_state.intersect_shape(query, 1)
+	if hits.is_empty():
+		return false
+	var rope := hits[0].collider as SwingRope
+	if rope == null:
+		return false
+
+	swing_rope = rope
+	rope.held = true
+	swing_distance = clampf((hands - rope.global_position).dot(rope.direction()), rope_min_hold, rope.length)
+	# The catch stops the rope where it is, even if it was still swinging
+	# or the player arrived with speed. Swinging starts on a press.
+	rope.set_swing(rope.angle, 0.0)
+	swing_started = false
+	# Catching a rope hands the air dash back, so routes can chain dash,
+	# rope, dash.
+	has_air_dash = true
+	# The jump that reached the rope is still in the buffer, and would
+	# otherwise fire as a jump off it on the first swing frame.
+	jump_buffer_timer = 0.0
+	velocity = Vector2.ZERO
+	dash_timer = 0.0
+	wall_jump_lock_timer = 0.0
+	is_wall_sliding = false
+	is_wall_running = false
+	is_climbing = false
+	# The swing skips the rest of _physics_process, so a punch thrown into
+	# the rope would otherwise never get cleaned up.
+	_end_attack()
+	_follow_rope()
+	_update_swing_animation(0.0, 0.0)
+	return true
+
+
+# The direction the hands move as the swing angle grows (to the right at
+# the bottom of the arc).
+func _rope_tangent() -> Vector2:
+	var along := swing_rope.direction()
+	return Vector2(along.y, -along.x)
+
+
+func _process_swing(direction: float, delta: float) -> void:
+	var rope := swing_rope
+	if not Input.is_action_pressed("grab"):
+		_release_rope(false)
+		return
+	if jump_buffer_timer > 0.0:
+		_release_rope(true)
+		return
+
+	# Moving the hands keeps the angular momentum, so climbing up mid-swing
+	# speeds it up and sliding down slows it, the way a real swing does.
+	var w := rope.angular_velocity
+	var vertical := Input.get_axis("move_up", "crouch")
+	var new_distance := clampf(swing_distance + vertical * rope_climb_speed * delta, rope_min_hold, rope.length)
+	var climbed := new_distance - swing_distance
+	w *= pow(swing_distance / new_distance, 2.0)
+	swing_distance = new_distance
+	_update_swing_animation(direction, climbed)
+
+	var a := rope.angle
+	if direction != 0.0:
+		swing_started = true
+	if not swing_started:
+		# Held still, gravity and all, until the player starts the swing.
+		_follow_rope()
+		return
+	w += -gravity / swing_distance * sin(a) * delta
+	# Pumping only works with the swing, never against it (from rest any
+	# direction starts it), and stops adding once the swing is at full
+	# height. Height comes from the swing's energy rather than its current
+	# angle, so a pump at the bottom knows how high the swing will go.
+	var pumping := direction != 0.0 and (signf(direction) == signf(w) or absf(w) < 0.05)
+	var reach := clampf(cos(a) - w * w * swing_distance / (2.0 * gravity), -1.0, 1.0)
+	if pumping and acos(reach) < deg_to_rad(rope_max_angle):
+		w += signf(direction) * rope_pump_accel / swing_distance * delta
+	w *= maxf(1.0 - rope_damping * delta, 0.0)
+	rope.set_swing(a + w * delta, w)
+
+	# Hitting a wall or ceiling stops the swing dead, still holding on.
+	if not _follow_rope():
+		rope.set_swing(a, 0.0)
+
+
+# The climb sheet while just holding on (cycling as the hands move along
+# the rope, frozen otherwise, as on a wall), and the hang pose while left
+# or right is held, so pumping reads as a reach into the swing. Both are
+# drawn holding on to the right. `climbed` is how far down the rope the
+# hands moved this frame.
+func _update_swing_animation(direction: float, climbed: float) -> void:
+	sprite.speed_scale = 1.0
+	sprite.flip_h = facing < 0.0
+	if direction != 0.0:
+		_play("ledge_hang")
+		return
+	if sprite.animation != "climb":
+		sprite.play("climb")
+	if climbed < 0.0:
+		sprite.play("climb")
+	elif climbed > 0.0:
+		sprite.play_backwards("climb")
+	else:
+		sprite.pause()
+
+
+# Moves the body so the hands sit on the rope. False if something solid
+# got in the way first.
+func _follow_rope() -> bool:
+	var hands := swing_rope.global_position + swing_rope.direction() * swing_distance
+	return move_and_collide(hands - _rope_hand_offset() - global_position) == null
+
+
+# Lets go with the swing's speed. A jump adds lift and briefly locks air
+# steering so the launch carries; a plain release just drops.
+func _release_rope(jump: bool) -> void:
+	velocity = _rope_tangent() * swing_rope.angular_velocity * swing_distance
+	if jump:
+		# At least the boost upward, so a jump on the downswing still rises.
+		velocity.y = minf(velocity.y, 0.0) + rope_jump_boost
+		wall_jump_lock_timer = rope_release_lock_time
+		if velocity.x != 0.0:
+			facing = signf(velocity.x)
+		_consume_jump()
+		is_air_spinning = true
+		sprite.speed_scale = 1.0
+		sprite.flip_h = facing < 0.0
+		sprite.play(&"air_spin")
+	swing_rope.held = false
+	swing_rope = null
+	rope_regrab_timer = rope_regrab_delay
+	air_sprint = false
+
+
 func _wall_side() -> int:
 	for side: int in [1, -1]:
 		if _is_wall(side):
@@ -1350,6 +1545,14 @@ func _update_animation(direction: float, wall_side: int, was_on_floor: bool) -> 
 		_play("wall_slide")
 		return
 
+	# The rope jump's somersault plays through once in the air. Anything
+	# above here that takes over the sprite (a wall slide, a dash, a
+	# punch) cuts it off, and so does landing.
+	if is_air_spinning:
+		if not is_on_floor() and sprite.animation == &"air_spin" and sprite.is_playing():
+			return
+		is_air_spinning = false
+
 	# Facing only changes on input, not velocity, so skidding to a stop
 	# after reversing doesn't flicker the sprite back and forth.
 	sprite.flip_h = facing < 0.0
@@ -1417,5 +1620,9 @@ func respawn() -> void:
 	has_air_dash = true
 	ledge_state = LedgeState.NONE
 	is_climbing = false
+	if swing_rope != null:
+		swing_rope.held = false
+		swing_rope = null
+	is_air_spinning = false
 	stamina = climb_stamina
 	_end_attack()

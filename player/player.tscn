@@ -20,6 +20,7 @@
 [ext_resource type="Texture2D" path="res://assets/Crouch-Walk/player crouch-walk 48x48.png" id="18_crouch_walk"]
 [ext_resource type="Texture2D" path="res://assets/Roll/Player Roll 48x48.png" id="19_roll"]
 [ext_resource type="Texture2D" path="res://assets/Slide/Player Slide 48x48.png" id="20_slide"]
+[ext_resource type="Texture2D" path="res://assets/Air Spin/player air spin 48x48.png" id="21_air_spin"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle_0"]
 atlas = ExtResource("2_idle")
@@ -488,6 +489,30 @@ region = Rect2(240, 0, 48, 48)
 [sub_resource type="AtlasTexture" id="AtlasTexture_roll_6"]
 atlas = ExtResource("19_roll")
 region = Rect2(288, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_air_spin_0"]
+atlas = ExtResource("21_air_spin")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_air_spin_1"]
+atlas = ExtResource("21_air_spin")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_air_spin_2"]
+atlas = ExtResource("21_air_spin")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_air_spin_3"]
+atlas = ExtResource("21_air_spin")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_air_spin_4"]
+atlas = ExtResource("21_air_spin")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_air_spin_5"]
+atlas = ExtResource("21_air_spin")
+region = Rect2(240, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_slide_0"]
 atlas = ExtResource("20_slide")
@@ -1024,6 +1049,29 @@ animations = [{
 "loop": false,
 "name": &"roll",
 "speed": 14.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_air_spin_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_air_spin_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_air_spin_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_air_spin_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_air_spin_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_air_spin_5")
+}],
+"loop": false,
+"name": &"air_spin",
+"speed": 18.0
 }, {
 "frames": [{
 "duration": 1.0,

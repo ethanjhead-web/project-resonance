@@ -59,8 +59,8 @@ D-pad moves (up climbs, down crouches); Minus opens the inventory; the map needs
       (480px/s) until landing, with no steering, then holds the feet for `dive_land_time` (0.8s) frozen on
       `land`'s deepest crouch (frame 0), then plays the rest of `land` to stand up (movement cancels it). Down
       with a side held is still a sideways dash. Air-only, and it shares `has_air_dash`
-      with the dash: one dash or dive per trip through the air, refilled only on the ground (not by a wall slide, climb or ledge hang).
-    - **Hard landing:** a fall of at least `hard_land_height` (220px, just under the climbable column's 224px) gets the
+      with the dash: one dash or dive per trip through the air, refilled on the ground or by catching a rope (not by a wall slide, climb or ledge hang).
+    - **Hard landing:** a fall of at least `hard_land_height` (220px, just under column A6's 224px) gets the
       dive's landing recovery (`dive_land_timer`, held crouch then stand-up) without the glow. The fall is measured from
       `fall_peak_y`, the highest point since anything last held the player up (floor, wall slide, climb, ledge hang or
       wall run), so sliding down a tall wall doesn't count. It also ends an air punch.
@@ -125,6 +125,25 @@ D-pad moves (up climbs, down crouches); Minus opens the inventory; the map needs
     - **Jump:** every jump while climbing is a wall jump, whatever direction is held. There is deliberately no
       Celeste-style climb jump (straight up the wall); the game aims to be more rhythmic than Celeste.
     - **Top of the wall:** climbing up hands off to the ledge hang.
+  - **Rope swing:** a `SwingRope` (`levels/swing_rope.gd`, an Area2D on physics layer 4 "rope" with a segment
+    shape, drawn as a line) hangs `length` px from its position. It owns its swing (`angle`, `angular_velocity`) and
+    settles on its own under `free_damping` when nobody holds it.
+    - **Catch:** grab held in the air (rising or falling), with the rope inside `rope_catch_size` around the hands
+      (`_try_catch_rope()`), anywhere along it. The catch stops the rope dead (whatever speed the player or rope had), the
+      air dash is refilled, and the buffered jump is cleared so it doesn't fire straight off the rope. The hands use
+      `ledge_hand_offset`, with facing fixed for the whole swing.
+    - **Animation** (`_update_swing_animation()`): the climb sheet while just holding on (forward climbing up, backward
+      sliding down, paused when still), and `ledge_hang` while left or right is held.
+    - **Swing** (`_process_swing()`, an early return like the ledge hang): nothing moves (no gravity either) until the
+      first left or right press after the catch (`swing_started`); climbing along the rope works before that. Then a
+      pendulum from the anchor to the hands
+      using the player's `gravity`. Holding the way it's already swinging pumps it (`rope_pump_accel`) until its
+      energy reaches `rope_max_angle` (70°); `rope_damping` bleeds a little off. Up/Down move the hands along the rope
+      at `rope_climb_speed`, keeping angular momentum (climbing up speeds the swing). Hitting something stops it dead.
+    - **Release:** letting go of grab drops with the swing's velocity. A jump adds `rope_jump_boost` (at least that
+      much upward), locks air steering for `rope_release_lock_time` via `wall_jump_lock_timer`, and turns to face the
+      launch. It plays `air_spin` (the pack's somersault, 6 frames at 18fps, once through; `is_air_spinning`)
+      until it finishes, the player lands, or another state takes the sprite. Ropes are ignored for `rope_regrab_delay` after either. No dash or punch from the rope.
   - **Wall run:** sprinting into a wall on the ground (speed at least `wall_run_min_speed`, 150px/s, with sprint held
     and the wall at the hands) runs the player up it starting at `wall_run_speed` (180px/s, the sprint speed) and
     slowing evenly to a stop at `wall_run_height` (40px, 2.5 tiles). The slowdown is solved from the two, so
@@ -166,25 +185,29 @@ D-pad moves (up climbs, down crouches); Minus opens the inventory; the map needs
 - `levels/test_room.tscn` (the main scene) is a movement sandbox.
   - `test_room.gd` sets the camera limits and respawns the player after a fall into the pit.
   - **Names** (shown in-game and in the editor as `Label`s under the `Labels` node, so the user can point at things
-    by name): the room is split by a dividing line of two columns, A2 (rising from the floor) and B1 (hanging from
-    the ceiling), with the wall-jump shaft between them.
-    - **Room A** (left of the line) contains the pit, two columns and four blocks:
-      - **A1**, just past the pit (columns 30-31, y 256-352). A green `Ladder` (a `GripSurface` with `drains_stamina`
-        off) covers its whole left face.
-      - **A2**, the tall column (columns 41-42). A red `GripSurface` covers its left face from halfway up to the top
-        (y 96-208), for practising a jump across to a climb from the floating block beside it (A6).
-      - **A3**, the floor step (columns 8-11, 4×2, sitting on the floor).
-      - **A4**, **A5** and **A6**, the floating 2×2 blocks, left to right (columns 13-14, 18-19 and 35-36; tops at
-        y 256, 192 and 192).
+    by name): the room is split by a dividing line of two columns, A6 (rising from the floor) and B1 (hanging from
+    the ceiling), with the wall-jump shaft between them. Columns and blocks share one sequence per room, numbered
+    left to right.
+    - **Room A** (left of the line) contains the pit and:
+      - **A1**, the floor step (columns 8-11, 4×2, sitting on the floor).
+      - **A2** and **A3**, floating 2×2 blocks (columns 13-14 and 18-19; tops at y 256 and 192).
+      - **A4**, the column just past the pit (columns 30-31, y 256-352). A green `Ladder` (a `GripSurface` with
+        `drains_stamina` off) covers its whole left face.
+      - **A5**, a floating 2×2 block (columns 35-36, top at y 192).
+      - **A6**, the tall column (columns 41-42). A red `GripSurface` covers its left face from halfway up to the top
+        (y 96-208), for practising a jump across to a climb from A5.
     - **Room B** (right of the line, columns 49-94; the camera limits run to x 1536) is reached through a 2-tile
-      doorway at the foot of B1, level with the raised ledge. It has a long sprint runway and **B2**, a thin column
-      hanging from the ceiling (columns 82-84), over a 1-tile-tall roll/crawl tunnel. B2 reaches the top of the room,
-      so the tunnel can't be jumped over. One-tile gaps break the painter's 2-tile rule below, so the tiles around
-      them may draw a little rough.
-      - **B3**, a `MovableBlock` in the middle of room B (starts at x 1152, on the floor). Its label is a child of
-        the block, so the name moves with it (it isn't under `Labels`).
-    - Columns and blocks share one numbering per room. Columns were numbered first, then blocks, each left to
-      right. Anything new takes the next free number in its room (A7, B4...); existing names never shift.
+      doorway at the foot of B1, level with the raised ledge. It has a long sprint runway and:
+      - **B2**, a `SwingRope` hanging 170px from the ceiling at x 1120 (a little left of centre, so a full swing
+        clears B4). Its end (y 186) is out of reach from the floor but just reachable with a jump from the top of B3,
+        so the block is the way up to it. Its label sits beside the knot, under `Labels`.
+      - **B3**, a `MovableBlock` in the middle of the room (starts at x 1152, on the floor), numbered by its starting
+        spot. Its label is a child of the block, so the name moves with it (it isn't under `Labels`).
+      - **B4**, a thin column hanging from the ceiling (columns 82-84), over a 1-tile-tall roll/crawl tunnel. It
+        reaches the top of the room, so the tunnel can't be jumped over. One-tile gaps break the painter's 2-tile
+        rule below, so the tiles around them may draw a little rough.
+    - Names stay in left-to-right order: something new is numbered by its position and anything after it shifts up
+      one. Tell the user whenever an existing name changes.
 - `levels/cave_tileset.tres` is the TileSet. Solid tiles get full 16×16 collision.
 - `levels/cave_tile_painter.gd` (`@tool` TileMapLayer) autotiles an ASCII `layout` (`#` solid, `.` air).
   Press "Rebuild From Layout" in the Inspector to regenerate it. Layout rules:
