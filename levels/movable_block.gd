@@ -7,15 +7,23 @@ extends AnimatableBody2D
 # be stood on, wall jumped off and ledge grabbed, and it falls under its
 # own gravity, so pushing it off a ledge drops it.
 #
-# Drawn with the tileset's 2x2 floating-block art, so it matches the
-# fixed blocks, plus a blue bar on each side face to mark it as
+# Drawn the way the tile painter draws a free-standing 2-wide column, so
+# it matches the fixed blocks and columns, plus a blue bar on each side face to mark it as
 # grabbable. Real art should mark that with a shape or texture too, not
 # colour alone, so it reads for colour-blind players.
 
-const SIZE := Vector2(32.0, 32.0)
+const SIZE := Vector2(32.0, 64.0)
+const TILE := 16.0
 const TILES := preload("res://assets/Tilemap (Super Basic)/Basic Tilemap.png")
-# The pack's floating block: atlas tiles (1, 1) to (2, 2).
-const BLOCK_REGION := Rect2(16.0, 16.0, 32.0, 32.0)
+# The pack's floating block is atlas tiles (1, 1) to (2, 2): its top row
+# caps the block and its bottom row finishes it.
+const TOP_REGION := Rect2(16.0, 16.0, 32.0, 16.0)
+const BOTTOM_REGION := Rect2(16.0, 32.0, 32.0, 16.0)
+# Side-wall bricks for the rows between, picked as the painter does for a
+# column's faces: atlas column 5 faces left, column 0 faces right, and
+# both cycle through rows 5-8.
+const LEFT_FACE_X := 5.0 * TILE
+const RIGHT_FACE_X := 0.0
 
 @export var gravity: float = 800.0
 @export var max_fall_speed: float = 420.0
@@ -90,9 +98,18 @@ func slide(dx: float, mover: PhysicsBody2D) -> float:
 
 
 func _draw() -> void:
-	draw_texture_rect_region(TILES, Rect2(-SIZE * 0.5, SIZE), BLOCK_REGION)
+	var half := SIZE * 0.5
+	var rows := int(SIZE.y / TILE)
+	draw_texture_rect_region(TILES, Rect2(-half, Vector2(SIZE.x, TILE)), TOP_REGION)
+	for row in range(1, rows - 1):
+		var y := -half.y + row * TILE
+		var atlas_y := (5.0 + posmod(row, 4)) * TILE
+		draw_texture_rect_region(TILES, Rect2(-half.x, y, TILE, TILE),
+				Rect2(LEFT_FACE_X, atlas_y, TILE, TILE))
+		draw_texture_rect_region(TILES, Rect2(0.0, y, TILE, TILE),
+				Rect2(RIGHT_FACE_X, atlas_y, TILE, TILE))
+	draw_texture_rect_region(TILES, Rect2(-half.x, half.y - TILE, SIZE.x, TILE), BOTTOM_REGION)
 	# Each bar sits 1px proud of its face, so it reads as a handle on the
 	# side rather than part of the block's own shading.
-	var half := SIZE * 0.5
 	draw_rect(Rect2(-half.x - 1.0, -half.y, bar_width, SIZE.y), bar_color)
 	draw_rect(Rect2(half.x + 1.0 - bar_width, -half.y, bar_width, SIZE.y), bar_color)
