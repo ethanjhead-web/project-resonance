@@ -21,6 +21,14 @@
 [ext_resource type="Texture2D" path="res://assets/Roll/Player Roll 48x48.png" id="19_roll"]
 [ext_resource type="Texture2D" path="res://assets/Slide/Player Slide 48x48.png" id="20_slide"]
 [ext_resource type="Texture2D" path="res://assets/Air Spin/player air spin 48x48.png" id="21_air_spin"]
+[ext_resource type="Script" uid="uid://xfe8sby1vrmk" path="res://player/player_dash.gd" id="30_dash"]
+[ext_resource type="Script" uid="uid://cfdsjce1p5cri" path="res://player/player_crouch.gd" id="31_crouch"]
+[ext_resource type="Script" uid="uid://qbswffbfxbqg" path="res://player/player_slope.gd" id="32_slope"]
+[ext_resource type="Script" uid="uid://bf6rdx41hhirh" path="res://player/player_climb.gd" id="33_climb"]
+[ext_resource type="Script" uid="uid://c5kwc43ftg8vn" path="res://player/player_ledge.gd" id="34_ledge"]
+[ext_resource type="Script" uid="uid://ch0adr5lbo7by" path="res://player/player_rope.gd" id="35_rope"]
+[ext_resource type="Script" uid="uid://cvlkv0nd3qqgh" path="res://player/player_punch.gd" id="36_punch"]
+[ext_resource type="Script" uid="uid://dg3f44w1km1ad" path="res://player/player_animation.gd" id="37_animation"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle_0"]
 atlas = ExtResource("2_idle")
@@ -1222,3 +1230,27 @@ disabled = true
 position = Vector2(20, -16)
 shape = SubResource("RectangleShape2D_cross")
 disabled = true
+
+[node name="Dash" type="Node" parent="."]
+script = ExtResource("30_dash")
+
+[node name="Crouch" type="Node" parent="."]
+script = ExtResource("31_crouch")
+
+[node name="Slope" type="Node" parent="."]
+script = ExtResource("32_slope")
+
+[node name="Climb" type="Node" parent="."]
+script = ExtResource("33_climb")
+
+[node name="Ledge" type="Node" parent="."]
+script = ExtResource("34_ledge")
+
+[node name="Rope" type="Node" parent="."]
+script = ExtResource("35_rope")
+
+[node name="Punch" type="Node" parent="."]
+script = ExtResource("36_punch")
+
+[node name="Animation" type="Node" parent="."]
+script = ExtResource("37_animation")
