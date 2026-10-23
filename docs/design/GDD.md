@@ -51,6 +51,8 @@ The market and approach to the pillar are safe; the interior turns hostile with 
 
 Entire map is a concentric circular cymatic shape.
 
+**Possible names for the world:** Cymatica, Cymatia, Cymalia, Cymillia, Cymilla.
+
 **Possible names:** Cymatica, Cymatia, Cymalia, Cymillia, Cymilla
 
 ### Desert / Barren Sea / Sunken Ship *(starting region)*
@@ -90,7 +92,9 @@ A yellow/pink/purple gradient makes sky and ground indistinguishable. Functions 
 
 Possibly moving psychedelic cymatic patterns similar to the cymatik.app.
 
-*(Reference image from the original doc: a cymatic pattern — save it to `docs/design/references/` if needed.)*
+![Rose windows, a top-down view of DNA and cymatic frequencies side by side](references/spirit-plain-cymatics.png)
+
+*Reference: church rose windows, DNA seen top-down and cymatic frequency patterns share the same radial structure.*
 
 To enter the Spirit Plain, you must play the associated song for that region at the holy spot — chromatic aberration becomes more pronounced upon playing the holy melody until eventually taking over the entire screen.
 

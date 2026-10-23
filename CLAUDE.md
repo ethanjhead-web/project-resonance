@@ -103,6 +103,6 @@ Keyboard: arrows/WASD, Space jump, Shift sprint, Z punch, C dash, X grab, F turn
 - snake_case for files, folders, functions and variables. PascalCase for node names and `class_name`.
 - Comment the *why* (feel and design intent), matching the existing scripts.
 - Docs live in `docs/` (has `.gdignore`, so Godot skips it).
-- Script check without a window: `/Users/EthanHead/Desktop/Godot.app/Contents/MacOS/Godot --headless --path .
+- Script check without a window: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path .
   --check-only --script <file.gd>`. A new `class_name` needs the class cache refreshed first:
   `... --headless --path . --editor --quit-after 600` (macOS has no `timeout`).
